@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "langcare-mcp-fhir": {
+          "command": "{langcare-mcp-fhir-locaton}/bin/langcare-mcp-fhir",
+          "args": ["-config", "{langcare-mcp-fhir-locaton}/configs/config.local.yaml"]
+        }
+   }
+}
