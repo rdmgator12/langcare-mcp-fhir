@@ -1,0 +1,51 @@
+# LangCare MCP FHIR Server Configuration for EPIC FHIR API
+# This is a working configuration file - adjust for your environment
+
+fhir_server:
+  provider: "epic"
+  base_url: "https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4"
+
+  # EPIC OAuth2 configuration
+  epic:
+    client_id: "XXXXXXXXXXX"  # Get from EPIC App Orchard
+    private_key_path: "your-path/keys/epic/private-key.pem"  # Path to your private key
+    token_url: "https://fhir.epic.com/interconnect-fhir-oauth/oauth2/token"
+
+    # OAuth2 Scopes - Must match what's registered in EPIC App Orchard
+    # Format: system/ResourceType.read or system/ResourceType.write
+    scopes:
+      # Patient Demographics
+      - "system/Patient.read"
+      - "system/Patient.write"
+
+      # Clinical Observations (Labs, Vitals, etc.)
+      - "system/Observation.read"
+      - "system/Observation.write"
+      ...
+      ....
+      .....
+      
+  timeout: 30s
+
+mcp:
+  name: "LangCare MCP FHIR Server"
+  version: "2.0.0"
+
+transport:
+  stdio: false
+  http:
+    enabled: true
+    port: 8080
+
+logging:
+  level: "info"
+  format: "json"
+  scrub_phi: true
+
+security:
+  # MCP auth tokens (comma-separated) or use MCP_AUTH_TOKENS env var (for http transport)
+  mcp_auth_tokens: "token1,token2,token3"
+  rate_limit:
+    enabled: true
+    rate: 100  # requests per second
+    burst: 200 # burst size

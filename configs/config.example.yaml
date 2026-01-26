@@ -1,0 +1,232 @@
+# LangCare MCP FHIR Server Configuration Example
+# Copy this file to config.yaml and customize for your environment
+
+# FHIR Server Configuration
+# Choose ONE provider type: gcp, epic, cerner, or generic
+
+fhir_server:
+  # Provider type: gcp, epic, cerner, generic
+  provider: "generic"
+
+  # ===== OPTION 1: GCP Healthcare API =====
+  # provider: "gcp"
+  # # base_url is optional for GCP (auto-constructed from config below)
+  # gcp:
+  #   project_id: "your-gcp-project-id"
+  #   location: "us-central1"
+  #   dataset_id: "healthcare-dataset"
+  #   fhir_store_id: "patient-data"
+  #   credential_path: ""  # Optional: path to service account JSON, or use GOOGLE_APPLICATION_CREDENTIALS env var
+
+  # ===== OPTION 2: EPIC (SMART on FHIR with JWT) =====
+  # provider: "epic"
+  # base_url: "https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4"
+  # epic:
+  #   client_id: "your-epic-client-id"
+  #   private_key_path: "/path/to/private-key.pem"  # RSA private key for JWT signing
+  #   token_url: "https://fhir.epic.com/interconnect-fhir-oauth/oauth2/token"
+  #   # Scopes must match what's registered in EPIC App Orchard
+  #   scopes:
+  #     # Core Clinical Resources (Read/Write)
+  #     - "system/Patient.read"
+  #     - "system/Patient.write"
+  #     - "system/Observation.read"
+  #     - "system/Observation.write"
+  #     - "system/Condition.read"
+  #     - "system/Condition.write"
+  #     - "system/MedicationRequest.read"
+  #     - "system/MedicationRequest.write"
+  #     - "system/Encounter.read"
+  #     - "system/Encounter.write"
+  #     - "system/Procedure.read"
+  #     - "system/Procedure.write"
+  #     - "system/DiagnosticReport.read"
+  #     - "system/AllergyIntolerance.read"
+  #     - "system/Immunization.read"
+  #     # Clinical Notes & Documents
+  #     - "system/DocumentReference.read"
+  #     - "system/Binary.read"              # Document content
+  #     - "system/Composition.read"         # Structured clinical notes
+  #     - "system/Media.read"               # Photos, images
+  #     - "system/QuestionnaireResponse.read"  # Clinical assessments
+  #     # Add more as needed - see config.local.epic.yaml for comprehensive list
+
+  # ===== OPTION 3: Cerner (SMART on FHIR with Client Credentials) =====
+  # provider: "cerner"
+  # base_url: "https://fhir-myrecord.cerner.com/r4"
+  # cerner:
+  #   client_id: "your-cerner-client-id"
+  #   client_secret: "${CERNER_CLIENT_SECRET}"  # Use env var for security
+  #   token_url: "https://authorization.cerner.com/tenants/your-tenant/protocols/oauth2/profiles/smart-v1/token"
+  #   scopes:
+  #     - "system/Patient.read"
+  #     - "system/Observation.read"
+  #     - "system/MedicationRequest.read"
+  #     - "system/Condition.read"
+
+  # ===== OPTION 4: Generic FHIR Server (with simple auth) =====
+  provider: "generic"
+  base_url: "https://hapi.fhir.org/baseR4"
+  auth:
+    type: "none"  # Options: bearer, basic, none
+    # For bearer token auth:
+    # token: "${FHIR_AUTH_TOKEN}"
+    # For basic auth:
+    # username: "${FHIR_USERNAME}"
+    # password: "${FHIR_PASSWORD}"
+
+  # Request timeout
+  timeout: 30s
+
+  # Optional: Custom headers to send with every request
+  # headers:
+  #   X-Custom-Header: "value"
+
+# MCP Server Configuration
+mcp:
+  name: "LangCare MCP FHIR Server"
+  version: "2.0.0"
+
+# Transport Configuration
+transport:
+  # Enable stdio transport (for local CLI integration)
+  # Note: Stdio mode does NOT require MCP authentication (process-level isolation)
+  stdio: true
+
+  # HTTP/SSE transport configuration (for remote/production use)
+  http:
+    enabled: false
+    port: 8080
+    # Optional: TLS configuration
+    # tls:
+    #   enabled: true
+    #   cert_file: "/path/to/cert.pem"
+    #   key_file: "/path/to/key.pem"
+
+# Logging configuration
+logging:
+  # Log level: debug, info, warn, error
+  level: "info"
+  # Log format: json, text
+  format: "json"
+  # Enable PHI scrubbing in logs (always keep this true in production)
+  scrub_phi: true
+
+# Security Configuration
+security:
+  # MCP client authentication tokens (comma-separated)
+  # RECOMMENDED: Use MCP_AUTH_TOKENS environment variable instead for production
+  # Example: export MCP_AUTH_TOKENS="token1,token2,token3"
+  # mcp_auth_tokens: "token1,token2,token3"
+
+  # Rate limiting (only applies to HTTP transport)
+  rate_limit:
+    enabled: true
+    rate: 100  # requests per second per IP
+    burst: 200 # burst allowance
+
+# ===== PRODUCTION CONFIGURATION EXAMPLES =====
+
+# --- EPIC Production Example ---
+# fhir_server:
+#   provider: "epic"
+#   base_url: "https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4"
+#   epic:
+#     client_id: "${EPIC_CLIENT_ID}"
+#     private_key_path: "/secrets/epic/private-key.pem"
+#     token_url: "https://fhir.epic.com/interconnect-fhir-oauth/oauth2/token"
+#     # Production scopes - must match EPIC App Orchard registration
+#     scopes:
+#       - "system/Patient.read"
+#       - "system/Patient.write"
+#       - "system/Observation.read"
+#       - "system/Observation.write"
+#       - "system/Condition.read"
+#       - "system/Condition.write"
+#       - "system/MedicationRequest.read"
+#       - "system/MedicationRequest.write"
+#       - "system/Encounter.read"
+#       - "system/Encounter.write"
+#       - "system/Procedure.read"
+#       - "system/Procedure.write"
+#       - "system/DiagnosticReport.read"
+#       - "system/AllergyIntolerance.read"
+#       - "system/Immunization.read"
+#       # Clinical Notes & Documents
+#       - "system/DocumentReference.read"
+#       - "system/DocumentReference.write"
+#       - "system/Binary.read"
+#       - "system/Composition.read"
+#       - "system/Media.read"
+#       - "system/QuestionnaireResponse.read"
+#       # Care Coordination
+#       - "system/CarePlan.read"
+#       - "system/Appointment.read"
+#       # See config.local.epic.yaml for full comprehensive list
+#
+# transport:
+#   stdio: false
+#   http:
+#     enabled: true
+#     port: 8080
+#     tls:
+#       enabled: true
+#       cert_file: "/secrets/tls/tls.crt"
+#       key_file: "/secrets/tls/tls.key"
+#
+# security:
+#   # Set via environment: export MCP_AUTH_TOKENS="..."
+#   rate_limit:
+#     enabled: true
+#     rate: 100
+#     burst: 200
+#
+# logging:
+#   level: "info"
+#   format: "json"
+#   scrub_phi: true
+
+# --- Cerner Production Example ---
+# fhir_server:
+#   provider: "cerner"
+#   base_url: "https://fhir-myrecord.cerner.com/r4"
+#   cerner:
+#     client_id: "${CERNER_CLIENT_ID}"
+#     client_secret: "${CERNER_CLIENT_SECRET}"
+#     token_url: "https://authorization.cerner.com/tenants/your-tenant/protocols/oauth2/profiles/smart-v1/token"
+#     scopes:
+#       - "system/Patient.read"
+#       - "system/Observation.read"
+#
+# transport:
+#   stdio: false
+#   http:
+#     enabled: true
+#     port: 8080
+#
+# logging:
+#   level: "info"
+#   format: "json"
+#   scrub_phi: true
+
+# --- GCP Healthcare API Production Example ---
+# fhir_server:
+#   provider: "gcp"
+#   gcp:
+#     project_id: "my-healthcare-project"
+#     location: "us-central1"
+#     dataset_id: "production-dataset"
+#     fhir_store_id: "patient-store"
+#     # credential_path: "/secrets/gcp/service-account-key.json"
+#     # Or use GOOGLE_APPLICATION_CREDENTIALS environment variable
+#
+# transport:
+#   stdio: false
+#   http:
+#     enabled: true
+#     port: 8080
+#
+# logging:
+#   level: "info"
+#   format: "json"
+#   scrub_phi: true

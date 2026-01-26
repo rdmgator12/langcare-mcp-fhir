@@ -1,0 +1,54 @@
+# LangCare MCP FHIR Server Configuration for Google Cloud Healthcare API
+# This is a working configuration file - adjust for your environment
+
+fhir_server:
+  provider: "gcp"
+  base_url: "https://healthcare.googleapis.com/v1/projects/{your-project-id}/locations/{your-location}/datasets/{your-dataset-id}/fhirStores/{your-fhir-store-id}/fhir"
+
+  # EPIC OAuth2 configuration
+  gcp:
+    project_id: "{your-project-id}"
+    location: "{your-location}"
+    dataset_id: "your-dataset-id"
+    fhir_store_id: "your-fhir-store-id"
+    credential_path: "your-path/keys/gcp/service-account.json"
+
+    #OAuth2 Scopes - Must match what's registered in EPIC App Orchard
+    # Format: system/ResourceType.read or system/ResourceType.write
+    scopes:
+      # Patient Demographics
+      - "system/Patient.read"
+      - "system/Patient.write"
+
+      # Clinical Observations (Labs, Vitals, etc.)
+      - "system/Observation.read"
+      - "system/Observation.write"
+
+      ...
+      ....
+      .....
+
+  timeout: 30s
+
+mcp:
+  name: "LangCare MCP FHIR Server"
+  version: "2.0.0"
+
+transport:
+  stdio: true
+  http:
+    enabled: false
+    port: 8080
+
+logging:
+  level: "info"
+  format: "json"
+  scrub_phi: true
+
+security:
+  # MCP auth tokens (comma-separated) or use MCP_AUTH_TOKENS env var (for http transport)
+  # mcp_auth_tokens: "token1,token2,token3"
+  rate_limit:
+    enabled: true
+    rate: 100  # requests per second
+    burst: 200 # burst size

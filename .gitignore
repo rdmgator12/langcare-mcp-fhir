@@ -10,12 +10,21 @@
 
 # Test binary, built with `go test -c`
 *.test
+CLAUDE.md
 
 # Code coverage profiles and other test artifacts
 *.out
 coverage.*
 *.coverprofile
 profile.cov
+
+# Dev keys and credentials (NEVER COMMIT!)
+*.pem
+jwks.json
+keys/
+config.local.yaml
+configs/config.local.*.yaml
+*-credentials.yaml
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
@@ -30,3 +39,5 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+scractchpad.txt
