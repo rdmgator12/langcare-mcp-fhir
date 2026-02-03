@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.langcare/langcare-mcp-fhir",
-  "description": "An MCP server written in Go that provides FHIR R4-compliant API access to EMR systems like Epic, Cerner, and Google Cloud Healthcare API",
+  "description": "An MCP FHIR server written in Go for EMR systems like Epic and Cerner",
   "repository": {
     "url": "https://github.com/langcare/langcare-mcp-fhir",
     "source": "github"
