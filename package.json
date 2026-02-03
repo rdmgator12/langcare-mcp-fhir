@@ -1,6 +1,6 @@
 {
   "name": "@langcare/langcare-mcp-fhir",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "An MCP server written in Go that provides FHIR R4-compliant API access to EMR systems like Epic, Cerner, and Google Cloud Healthcare API",
   "repository": {
     "type": "git",
