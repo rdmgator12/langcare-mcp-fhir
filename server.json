@@ -11,7 +11,7 @@
     {
       "registryType": "npm",
       "identifier": "@langcare/langcare-mcp-fhir",
-      "version": "2.0.3",
+      "version": "2.0.4",
       "transport": {
         "type": "stdio"
       },
