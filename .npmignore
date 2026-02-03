@@ -1,0 +1,59 @@
+# Build artifacts
+bin/langcare-mcp-fhir.exe
+*.o
+*.a
+
+
+# Source and build files (optional - exclude to reduce package size)
+.claude
+cmd/
+internal/
+pkg/
+scripts/
+skills/
+test/
+go.mod
+go.sum
+Makefile
+*.go
+skills/
+*.o
+*.a
+
+# Development
+.git
+.github
+test/
+configs/config.local.*.yaml
+keys/
+.env
+.scratchpad.txt
+CLAUDE.md
+keys/
+*.pem
+jwks.json
+*-credentials.yaml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node/npm
+node_modules/
+npm-debug.log
+package-lock.json
+yarn.lock
+
+# Keep these
+!bin/langcare-mcp-fhir
+!README.md
+!LICENSE
+!package.json
+!server.json
+!scripts/postinstall.js
