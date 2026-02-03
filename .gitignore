@@ -51,4 +51,7 @@ Thumbs.db
 
 # IDE
 .vscode/
-.idea/
+.idea/.mcpregistry_*
+
+.mcpregistry_github_token
+.mcpregistry_registry_token
