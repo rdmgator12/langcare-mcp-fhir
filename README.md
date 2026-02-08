@@ -189,55 +189,48 @@ AI agents use LangCare MCP FHIR Server to help healthcare professionals access a
 
 **📖 Complete guide:** [Agent Prompt Guide](https://github.com/langcare/langcare-mcp-fhir/blob/main/docs/AGENT_PROMPT.md) - System prompt, tool examples, workflows, and error handling
 
-## Clinical Skills (Optional)
+## Clinical Skills Library (Optional)
 
-**Skills are optional, agent-agnostic clinical workflow guides** that enhance AI agents' ability to perform complex healthcare tasks using the MCP server's FHIR tools.
+**40+ agent-agnostic clinical workflow guides** that teach AI agents how to perform complex healthcare tasks using the MCP server's 4 FHIR tools (`fhir_search`, `fhir_read`, `fhir_create`, `fhir_update`).
 
-### What Are Skills?
+- **Optional** - The MCP server works without them
+- **Portable** - Work with Claude, ChatGPT, Gemini, or any AI agent
+- **Evidence-based** - Built on USPSTF, ADA, ACC/AHA, CDC, ACOG, KDIGO, and other society guidelines
+- **Copy-paste ready** - Add a skill's `SKILL.md` to your agent's system prompt or custom instructions
 
-Skills provide structured clinical workflows - like patient chart review, medication reconciliation, and preventive care screening - that work across all AI agents (Claude, ChatGPT, Gemini). They're copy-paste ready and focus on FHIR resource operations.
+### Skill Categories (40 Skills)
 
-**Key points:**
-- ✅ **Optional** - MCP server works perfectly without them
-- ✅ **Portable** - Work with any AI agent (Claude, ChatGPT, Gemini)
-- ✅ **Clinical Focus** - Based on evidence-based guidelines (USPSTF, ADA, ACC/AHA)
-- ✅ **Community-Driven** - Contributions welcome from healthcare professionals
+| Category | Skills | Examples |
+|----------|--------|----------|
+| **Patient Data & Summary** | 5 | Demographics, clinical summary (CCD-style), problem list audit, allergy review, insurance coverage |
+| **Medication Management** | 5 | Med reconciliation, drug interactions (CYP450), adherence (MPR/PDC), Beers Criteria, opioid risk (ORT/MME) |
+| **Lab & Diagnostics** | 5 | Lab interpretation, critical values (CAP/CLIA), pre-op labs, diabetes panel (ADA), renal function (KDIGO) |
+| **Clinical Decision Support** | 5 | Sepsis (qSOFA/SOFA), cardiovascular risk (ASCVD/HEART), VTE (Wells/Caprini), fall risk (Morse), pneumonia (CURB-65) |
+| **Care Coordination** | 5 | Discharge planning (LACE), referrals, care gaps (USPSTF), transitions of care (I-PASS), follow-up tasks |
+| **Documentation** | 5 | SOAP notes, H&P, progress notes, discharge summaries, procedure notes |
+| **Population Health** | 5 | Panel overview, quality measures (HEDIS), chronic disease registries, immunization status (CDC), preventive care compliance |
+| **Specialty** | 5 | Prenatal (ACOG), pediatric growth (WHO/CDC), mental health (PHQ-9/GAD-7), oncology (TNM/RECIST), chronic pain |
 
-### Available Skills
-
-**Core Skills:**
-- [fhir-clinical](https://github.com/langcare/langcare-mcp-fhir/tree/main/skills/core/fhir-clinical) - Comprehensive clinical workflows including:
-  - Patient chart review
-  - Medication reconciliation
-  - Lab result interpretation
-  - Preventive care screening
-  - Diabetes & hypertension management
-  - Clinical documentation
-  - Vital signs tracking
-
-**Community Skills:**
-- Browse community-contributed skills in [skills/community/](https://github.com/langcare/langcare-mcp-fhir/tree/main/skills/community)
-- Contribute your own workflows following [skills/README.md](https://github.com/langcare/langcare-mcp-fhir/blob/main/skills/README.md)
+**Full catalog with links:** [skills/README.md](skills/README.md)
 
 ### How to Use Skills
 
-**1. Choose a skill** from [skills/](https://github.com/langcare/langcare-mcp-fhir/tree/main/skills) directory  
-**2. Copy SKILL.md** to your AI agent's custom instructions or system prompt
+1. **Browse** the [skills/core/](skills/core/) directory and pick a skill
+2. **Copy** the skill's `SKILL.md` content into your AI agent's system prompt or custom instructions
+3. **Reference files** in each skill's `references/` subdirectory contain detailed clinical knowledge (scoring criteria, code tables, thresholds) that can optionally be included for deeper clinical accuracy
 
-**Example workflow with skills:**
 ```
-User: "Review chart for patient John Doe, DOB 1965-03-15"
-
-Agent (with fhir-clinical skill):
-1. Searches for patient by name and DOB
-2. Retrieves active conditions, medications, allergies
-3. Gets recent labs with reference ranges
-4. Reviews recent encounters
-5. Presents structured clinical summary
-
-Without skill: Agent would need step-by-step guidance for each operation
-With skill: Agent follows learned workflow automatically
+# Example: Add medication-reconciliation skill to your agent
+skills/core/medication-management/medication-reconciliation/
+├── SKILL.md              # Copy this into agent instructions
+└── references/
+    ├── reconciliation-process.md   # Joint Commission standards
+    └── high-risk-medications.md    # ISMP high-alert drug list
 ```
+
+**Integration guides:** [Claude](integrations/claude/) | [ChatGPT](integrations/chatgpt/) | [Gemini](integrations/gemini/)
+
+**Community contributions welcome** - see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## Development & Testing
 
