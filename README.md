@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/github/license/langcare/langcare-mcp-fhir)](https://github.com/langcare/langcare-mcp-fhir/blob/main/LICENSE)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/langcare/langcare-mcp-fhir)](https://github.com/langcare/langcare-mcp-fhir/blob/main/go.mod)
 
-Enterprise-grade MCP Server for FHIR-based EMRs, designed for robust deployments in agentic AI platforms. Fully written in Go with enterprise-grade security and generic FHIR operations that work with any FHIR R4 resource type.
+Enterprise-grade MCP Server for FHIR-based EMRs, designed for robust deployments in agentic AI platforms. Fully written in Go with enterprise-grade security and generic FHIR operations that work with any FHIR R4 resource type. Ships with a **[40+ Clinical Skills Library](skills/README.md)** — agent-agnostic workflow guides covering medication management, lab interpretation, clinical decision support, documentation, population health, and more.
 
 ## Installation
 
