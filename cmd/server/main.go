@@ -141,9 +141,9 @@ func main() {
 			fmt.Fprintf(os.Stderr, "[SECURITY] Rate limiting: %d req/s, burst %d\n", cfg.Security.RateLimit.Rate, cfg.Security.RateLimit.Burst)
 		}
 
-		fmt.Fprintf(os.Stderr, "[TRANSPORT] Starting HTTP/SSE transport on port %d...\n", cfg.Transport.HTTP.Port)
+		fmt.Fprintf(os.Stderr, "[TRANSPORT] Starting Streamable HTTP transport on port %d...\n", cfg.Transport.HTTP.Port)
 		fmt.Fprintf(os.Stderr, "[TRANSPORT] Endpoints:\n")
-		fmt.Fprintf(os.Stderr, "  - http://localhost:%d/mcp (SSE endpoint)\n", cfg.Transport.HTTP.Port)
+		fmt.Fprintf(os.Stderr, "  - http://localhost:%d/mcp (MCP endpoint)\n", cfg.Transport.HTTP.Port)
 		fmt.Fprintf(os.Stderr, "  - http://localhost:%d/health (health check)\n", cfg.Transport.HTTP.Port)
 		fmt.Fprintln(os.Stderr, "")
 

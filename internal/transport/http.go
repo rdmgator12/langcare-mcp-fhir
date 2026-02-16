@@ -17,14 +17,14 @@ type HTTPServerOptions struct {
 	RateLimit  config.RateLimitConfig
 }
 
-// StartHTTP starts the MCP server with HTTP/SSE transport
+// StartHTTP starts the MCP server with Streamable HTTP transport
 func StartHTTP(ctx context.Context, server *mcp.Server, cfg config.HTTPConfig, opts HTTPServerOptions) error {
 	addr := fmt.Sprintf(":%d", cfg.Port)
 
-	log.Printf("[HTTP] Starting MCP server with HTTP/SSE transport on %s", addr)
+	log.Printf("[HTTP] Starting MCP server with Streamable HTTP transport on %s", addr)
 
-	// Create SSE handler
-	handler := mcp.NewSSEHandler(func(r *http.Request) *mcp.Server {
+	// Create Streamable HTTP handler (replaces legacy SSE handler)
+	handler := mcp.NewStreamableHTTPHandler(func(r *http.Request) *mcp.Server {
 		return server
 	}, nil)
 

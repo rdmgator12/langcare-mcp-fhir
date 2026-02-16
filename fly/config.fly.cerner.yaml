@@ -1,0 +1,95 @@
+# LangCare MCP FHIR Server — Fly.io Cerner (Oracle Health) Configuration
+# Secrets injected via Fly.io secrets (env vars expanded at startup).
+# Cerner uses OAuth2 Client Credentials flow (client_id + client_secret).
+
+fhir_server:
+  provider: "cerner"
+  base_url: "${CERNER_BASE_URL}"
+
+  cerner:
+    client_id: "${CERNER_CLIENT_ID}"
+    client_secret: "${CERNER_CLIENT_SECRET}"
+    token_url: "${CERNER_TOKEN_URL}"
+
+    scopes:
+      # Patient Demographics
+      - "system/Patient.read"
+      - "system/Patient.write"
+
+      # Clinical Observations (Labs, Vitals)
+      - "system/Observation.read"
+      - "system/Observation.write"
+
+      # Conditions & Diagnoses
+      - "system/Condition.read"
+      - "system/Condition.write"
+
+      # Medications
+      - "system/MedicationRequest.read"
+      - "system/MedicationRequest.write"
+      - "system/MedicationStatement.read"
+      - "system/Medication.read"
+
+      # Encounters & Visits
+      - "system/Encounter.read"
+      - "system/Encounter.write"
+
+      # Procedures
+      - "system/Procedure.read"
+      - "system/Procedure.write"
+
+      # Diagnostic Reports
+      - "system/DiagnosticReport.read"
+
+      # Allergies & Intolerances
+      - "system/AllergyIntolerance.read"
+      - "system/AllergyIntolerance.write"
+
+      # Immunizations
+      - "system/Immunization.read"
+
+      # Clinical Documents
+      - "system/DocumentReference.read"
+      - "system/Binary.read"
+
+      # Care Plans & Goals
+      - "system/CarePlan.read"
+      - "system/Goal.read"
+
+      # Scheduling
+      - "system/Appointment.read"
+      - "system/Appointment.write"
+
+      # Coverage
+      - "system/Coverage.read"
+
+      # Providers & Organizations
+      - "system/Practitioner.read"
+      - "system/Organization.read"
+      - "system/Location.read"
+
+      # Service Requests
+      - "system/ServiceRequest.read"
+
+  timeout: 30s
+
+mcp:
+  name: "LangCare MCP FHIR Server"
+
+transport:
+  stdio: false
+  http:
+    enabled: true
+    port: 8080
+
+logging:
+  level: "${LOG_LEVEL}"
+  format: "json"
+  scrub_phi: true
+
+security:
+  mcp_auth_tokens: "${MCP_AUTH_TOKENS}"
+  rate_limit:
+    enabled: true
+    rate: 100
+    burst: 200

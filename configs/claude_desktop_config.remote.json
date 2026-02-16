@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+      "langcare-mcp-fhir-fly-dev": {
+        "command": "npx",
+        "args": [
+          "mcp-remote",
+          "https://{FLY_APP_NAME}.fly.dev/mcp",
+          "--header",
+          "Authorization: Bearer {MCP_AUTH_TOKENS}"
+        ]
+      }
+  }
+}

@@ -1,0 +1,36 @@
+# LangCare MCP FHIR Server — Fly.io GCP Healthcare API Configuration
+# Secrets injected via Fly.io secrets (env vars expanded at startup).
+# Service account JSON materialized from GCP_CREDENTIALS_B64 by docker-entrypoint.sh.
+
+fhir_server:
+  provider: "gcp"
+
+  gcp:
+    project_id: "${GCP_PROJECT_ID}"
+    location: "${GCP_LOCATION}"
+    dataset_id: "${GCP_DATASET_ID}"
+    fhir_store_id: "${GCP_FHIR_STORE_ID}"
+    credential_path: "/tmp/keys/gcp-credentials.json"
+
+  timeout: 30s
+
+mcp:
+  name: "LangCare MCP FHIR Server"
+
+transport:
+  stdio: false
+  http:
+    enabled: true
+    port: 8080
+
+logging:
+  level: "${LOG_LEVEL}"
+  format: "json"
+  scrub_phi: true
+
+security:
+  mcp_auth_tokens: "${MCP_AUTH_TOKENS}"
+  rate_limit:
+    enabled: true
+    rate: 100
+    burst: 200
