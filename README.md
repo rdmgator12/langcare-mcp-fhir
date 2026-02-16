@@ -67,7 +67,7 @@ This MCP server acts as an intelligent proxy between AI agents and FHIR R4 serve
 **Key Design:**
 - **MCP SDK:** Official `github.com/modelcontextprotocol/go-sdk` (Anthropic/Google maintained)
 - **FHIR Client:** Generic HTTP client working with any FHIR R4 server
-- **Transport:** stdio and HTTP/SSE
+- **Transport:** stdio and Streamable HTTP
 - **Backend:** Proxy to existing FHIR server (no database)
 - **Language:** 100% Go for high performance and reliability
 
@@ -248,13 +248,15 @@ make run
 ./bin/langcare-mcp-fhir -config configs/config.local.yaml
 ```
 
-### Run in HTTP Mode (Production)
+### Run in HTTP Mode (Streamable HTTP)
 
 ```bash
 make run-http
 # or
 ./bin/langcare-mcp-fhir -http -port 8080 -config configs/config.yaml
 ```
+
+Starts the server with Streamable HTTP transport on `/mcp` and health check on `/health`.
 
 ### Run Tests
 
@@ -267,6 +269,59 @@ make test
 ```bash
 make lint
 ```
+
+### Deploy to Fly.io (Remote Streamable HTTP)
+
+Deploy as a remote MCP server with Streamable HTTP transport, accessible by any MCP-compatible AI agent from anywhere.
+
+```bash
+# Install Fly CLI
+brew install flyctl
+fly auth login
+
+# Create app
+fly apps create --name langcare-mcp-dev
+
+# Set CONFIG_FILE in fly/fly.dev.toml [env] block for your provider (EPIC or GCP)
+# Then set secrets (EPIC example):
+fly secrets set \
+  EPIC_BASE_URL="https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4" \
+  EPIC_CLIENT_ID="your-client-id" \
+  EPIC_TOKEN_URL="https://fhir.epic.com/interconnect-fhir-oauth/oauth2/token" \
+  EPIC_PRIVATE_KEY_B64="$(base64 < keys/epic/private-key.pem)" \
+  MCP_AUTH_TOKENS="your-token" \
+  --app langcare-mcp-dev
+
+# Deploy
+fly deploy -c fly/fly.dev.toml --app langcare-mcp-dev
+
+# Verify
+curl https://langcare-mcp-dev.fly.dev/health
+```
+
+Connect any MCP client to:
+
+```
+URL:   https://langcare-mcp-dev.fly.dev/mcp
+Auth:  Authorization: Bearer your-token
+```
+
+Claude Desktop (`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "langcare-fhir": {
+      "url": "https://langcare-mcp-dev.fly.dev/mcp",
+      "headers": {
+        "Authorization": "Bearer your-token"
+      }
+    }
+  }
+}
+```
+
+Supports EPIC and GCP Healthcare API providers. See **[fly/README.md](fly/README.md)** for provider setup, secrets, and full deployment guide.
 
 ### Local Testing with EPIC
 
@@ -320,7 +375,7 @@ langcare-mcp-fhir/
 │   │   └── fhir_update.go                   # Update FHIR resource
 │   └── transport/
 │       ├── stdio.go                         # stdio transport (Claude Desktop)
-│       └── http.go                          # HTTP/SSE transport (production)
+│       └── http.go                          # Streamable HTTP transport (production)
 ├── pkg/
 │   └── types/
 │       └── errors.go                        # Custom error types
@@ -338,6 +393,13 @@ langcare-mcp-fhir/
 ├── test/
 │   ├── README.md                            # Test documentation
 │   └── test_epic_token.go                   # EPIC OAuth2 token tester
+├── fly/
+│   ├── Dockerfile                           # Multi-stage Go build for Fly.io
+│   ├── docker-entrypoint.sh                 # Key materialization + server startup
+│   ├── fly.dev.toml                         # Fly.io dev deployment config
+│   ├── config.fly.epic.yaml                 # Fly.io EPIC provider config
+│   ├── config.fly.gcp.yaml                  # Fly.io GCP provider config
+│   └── README.md                            # Fly.io deployment guide
 ├── scripts/
 │   └── create_jwks.sh                       # Generate JWKS from public key (used for EPIC FHIR)
 ├── bin/                                     # Build output (gitignored)
@@ -369,6 +431,9 @@ langcare-mcp-fhir/
 - **[📋 EPIC Scopes Reference](https://github.com/langcare/langcare-mcp-fhir/blob/main/docs/EPIC-SCOPES.md)** - Complete OAuth2 scopes guide for FHIR resources
 - **[🔑 Authentication Methods](#supported-authentication-methods)** - Supported auth methods
 
+### Deployment
+- **[Fly.io Deployment Guide](https://github.com/langcare/langcare-mcp-fhir/blob/main/docs/FLY-DEPLOYMENT.md)** - Remote Streamable HTTP deployment, provider configs, secrets, Docker
+
 ### Development & Testing
 - **[🧪 Testing Methods](https://github.com/langcare/langcare-mcp-fhir/blob/main/docs/LOCAL-TESTING.md#testing-with-claude-desktop)** - Claude Desktop, MCP Inspector, manual testing, and automation
 - **[📦 Project Structure](#project-structure)** - Directory layout and architecture
@@ -380,7 +445,7 @@ langcare-mcp-fhir/
 - `gopkg.in/yaml.v3` - Configuration parsing
 - `golang.org/x/oauth2` - OAuth2 client library
 - `github.com/golang-jwt/jwt/v5` - JWT signing and verification
-- Go 1.21+
+- Go 1.25+
 
 ## HIPAA Compliance
 

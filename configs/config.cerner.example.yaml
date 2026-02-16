@@ -1,0 +1,96 @@
+# LangCare MCP FHIR Server Configuration for Cerner (Oracle Health)
+# Cerner uses OAuth2 Client Credentials flow (client_id + client_secret)
+
+fhir_server:
+  provider: "cerner"
+  base_url: "https://fhir-ehr-code.cerner.com/r4/<your-tenant-id>"
+
+  cerner:
+    client_id: "your-cerner-client-id"
+    client_secret: "your-cerner-client-secret"
+    token_url: "https://authorization.cerner.com/tenants/<your-tenant-id>/protocols/oauth2/profiles/smart-v1/token"
+
+    scopes:
+      # Patient Demographics
+      - "system/Patient.read"
+      - "system/Patient.write"
+
+      # Clinical Observations (Labs, Vitals, etc.)
+      - "system/Observation.read"
+      - "system/Observation.write"
+
+      # Conditions & Diagnoses
+      - "system/Condition.read"
+      - "system/Condition.write"
+
+      # Medications
+      - "system/MedicationRequest.read"
+      - "system/MedicationRequest.write"
+      - "system/MedicationStatement.read"
+      - "system/Medication.read"
+
+      # Encounters & Visits
+      - "system/Encounter.read"
+      - "system/Encounter.write"
+
+      # Procedures
+      - "system/Procedure.read"
+      - "system/Procedure.write"
+
+      # Diagnostic Reports
+      - "system/DiagnosticReport.read"
+
+      # Allergies & Intolerances
+      - "system/AllergyIntolerance.read"
+      - "system/AllergyIntolerance.write"
+
+      # Immunizations
+      - "system/Immunization.read"
+
+      # Clinical Documents
+      - "system/DocumentReference.read"
+      - "system/Binary.read"
+
+      # Care Plans & Goals
+      - "system/CarePlan.read"
+      - "system/Goal.read"
+
+      # Scheduling
+      - "system/Appointment.read"
+      - "system/Appointment.write"
+
+      # Coverage
+      - "system/Coverage.read"
+
+      # Providers & Organizations
+      - "system/Practitioner.read"
+      - "system/Organization.read"
+      - "system/Location.read"
+
+      # Service Requests
+      - "system/ServiceRequest.read"
+
+  timeout: 30s
+
+mcp:
+  name: "LangCare MCP FHIR Server"
+  version: "2.1.1"
+
+transport:
+  stdio: true
+  http:
+    enabled: false
+    port: 8080
+
+logging:
+  level: "info"
+  format: "json"
+  scrub_phi: true
+
+security:
+  # MCP auth tokens (comma-separated) or use MCP_AUTH_TOKENS env var (for http transport)
+  mcp_auth_tokens: ""
+  rate_limit:
+    enabled: true
+    rate: 100
+    burst: 200

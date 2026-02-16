@@ -1,0 +1,136 @@
+# LangCare MCP FHIR Server — Fly.io EPIC Configuration
+# Secrets injected via Fly.io secrets (env vars expanded at startup).
+# Private key materialized from EPIC_PRIVATE_KEY_B64 by docker-entrypoint.sh.
+
+fhir_server:
+  provider: "epic"
+  base_url: "${EPIC_BASE_URL}"
+
+  epic:
+    client_id: "${EPIC_CLIENT_ID}"
+    private_key_path: "/tmp/keys/epic-private-key.pem"
+    token_url: "${EPIC_TOKEN_URL}"
+
+    # Scopes must match EPIC App Orchard registration.
+    # Trim to what your app actually needs.
+    scopes:
+      # Patient Demographics
+      - "system/Patient.read"
+      - "system/Patient.write"
+
+      # Clinical Observations (Labs, Vitals)
+      - "system/Observation.read"
+      - "system/Observation.write"
+
+      # Conditions & Diagnoses
+      - "system/Condition.read"
+      - "system/Condition.write"
+
+      # Medications
+      - "system/MedicationRequest.read"
+      - "system/MedicationRequest.write"
+      - "system/MedicationStatement.read"
+      - "system/MedicationStatement.write"
+      - "system/Medication.read"
+
+      # Encounters & Visits
+      - "system/Encounter.read"
+      - "system/Encounter.write"
+
+      # Procedures
+      - "system/Procedure.read"
+      - "system/Procedure.write"
+
+      # Diagnostic Reports
+      - "system/DiagnosticReport.read"
+      - "system/DiagnosticReport.write"
+
+      # Allergies & Intolerances
+      - "system/AllergyIntolerance.read"
+      - "system/AllergyIntolerance.write"
+
+      # Immunizations
+      - "system/Immunization.read"
+      - "system/Immunization.write"
+
+      # Clinical Documents & Notes
+      - "system/DocumentReference.read"
+      - "system/DocumentReference.write"
+      - "system/Binary.read"
+      - "system/Composition.read"
+      - "system/Composition.write"
+      - "system/Media.read"
+      - "system/Media.write"
+      - "system/QuestionnaireResponse.read"
+      - "system/QuestionnaireResponse.write"
+      - "system/Provenance.read"
+
+      # Care Plans & Goals
+      - "system/CarePlan.read"
+      - "system/CarePlan.write"
+      - "system/Goal.read"
+      - "system/Goal.write"
+
+      # Scheduling
+      - "system/Appointment.read"
+      - "system/Appointment.write"
+      - "system/Schedule.read"
+      - "system/Slot.read"
+
+      # Coverage & Claims
+      - "system/Coverage.read"
+      - "system/Claim.read"
+      - "system/Claim.write"
+      - "system/ExplanationOfBenefit.read"
+
+      # Providers & Organizations
+      - "system/Practitioner.read"
+      - "system/PractitionerRole.read"
+      - "system/Organization.read"
+      - "system/Location.read"
+
+      # Family History
+      - "system/FamilyMemberHistory.read"
+      - "system/FamilyMemberHistory.write"
+
+      # Specimens & Lab Orders
+      - "system/Specimen.read"
+      - "system/ServiceRequest.read"
+      - "system/ServiceRequest.write"
+
+      # Devices
+      - "system/Device.read"
+      - "system/DeviceUseStatement.read"
+
+      # Additional Clinical Resources
+      - "system/ClinicalImpression.read"
+      - "system/ClinicalImpression.write"
+      - "system/RiskAssessment.read"
+      - "system/RiskAssessment.write"
+      - "system/Communication.read"
+      - "system/Communication.write"
+      - "system/CommunicationRequest.read"
+      - "system/CommunicationRequest.write"
+
+  timeout: 30s
+
+mcp:
+  name: "LangCare MCP FHIR Server"
+
+transport:
+  stdio: false
+  http:
+    enabled: true
+    port: 8080
+
+logging:
+  level: "${LOG_LEVEL}"
+  format: "json"
+  scrub_phi: true
+
+security:
+  mcp_auth_tokens: "${MCP_AUTH_TOKENS}"
+  rate_limit:
+    enabled: true
+    rate: 100
+    burst: 200
