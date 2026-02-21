@@ -12,6 +12,7 @@
 *.test
 CLAUDE.md
 CLAUDE-original.md
+.claude/
 
 # Code coverage profiles and other test artifacts
 *.out
@@ -45,6 +46,13 @@ scractchpad.txt
 
 bin/
 node_modules/
+
+# MCP Apps build artifacts
+apps/dist/
+apps/dist-tmp/
+apps/node_modules/
+internal/apps/dist/*.html
+!internal/apps/dist/.gitkeep.html
 
 # OS files
 .DS_Store
