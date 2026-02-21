@@ -1,12 +1,26 @@
-.PHONY: build build-all test test-coverage lint clean run run-http install-tools deps
+.PHONY: build build-all build-go test test-coverage lint clean run run-http install-tools deps apps apps-clean
 
-# Build the server binary (current OS)
-build:
+# Build MCP App HTML bundles and copy to Go embed directory
+apps:
+	@bash scripts/build-apps.sh
+
+# Clean app build artifacts
+apps-clean:
+	@rm -rf apps/dist apps/dist-tmp apps/node_modules
+	@find internal/apps/dist -name '*.html' ! -name '.gitkeep.html' -delete 2>/dev/null || true
+
+# Build the server binary (includes embedded apps)
+build: apps
 	@echo "Building langcare-mcp-fhir server..."
 	@go build -o bin/langcare-mcp-fhir ./cmd/server
 
+# Build Go binary only (skip apps rebuild, for Go-only changes)
+build-go:
+	@echo "Building langcare-mcp-fhir server (Go only)..."
+	@go build -o bin/langcare-mcp-fhir ./cmd/server
+
 # Build for all platforms (for npm publishing)
-build-all: clean
+build-all: clean apps
 	@echo "Building for all platforms..."
 	@mkdir -p bin
 	@echo "Building for macOS (Intel)..."
@@ -49,7 +63,7 @@ run:
 # Run server in HTTP mode
 run-http:
 	@echo "Starting server (HTTP mode)..."
-	@go run cmd/server/main.go --transport=http --port=8080
+	@go run cmd/server/main.go -http -port 8080
 
 # Install development tools
 install-tools:

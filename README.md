@@ -5,7 +5,15 @@
 [![License](https://img.shields.io/github/license/langcare/langcare-mcp-fhir)](https://github.com/langcare/langcare-mcp-fhir/blob/main/LICENSE)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/langcare/langcare-mcp-fhir)](https://github.com/langcare/langcare-mcp-fhir/blob/main/go.mod)
 
-Enterprise-grade MCP Server for FHIR-based EMRs, designed for robust deployments in agentic AI platforms. Fully written in Go with enterprise-grade security and generic FHIR operations that work with any FHIR R4 resource type. Ships with a **[40+ Clinical Skills Library](skills/README.md)** — agent-agnostic workflow guides covering medication management, lab interpretation, clinical decision support, documentation, population health, and more.
+Enterprise-grade MCP Server for FHIR-based EMRs, designed for robust deployments in agentic AI platforms. Fully written in Go with enterprise-grade security and generic FHIR operations that work with any FHIR R4 resource type. Ships with a **[40+ Clinical Skills Library](skills/README.md)** — agent-agnostic workflow guides covering medication management, lab interpretation, clinical decision support, documentation, population health, and more. **&#11088; New: LangCare now supports [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview)** — interactive clinical UIs embedded directly in the server. [Learn more](apps/README.md).
+
+<p align="center">
+  <a href="https://langcare.ai">
+    <img src="docs/images/langcare-hero.png" alt="LangCare MCP FHIR — Healthcare AI Agents with FHIR MCP Server for EMRs" width="700" />
+  </a>
+  <br />
+  <a href="https://langcare.ai">langcare.ai</a>
+</p>
 
 ## Installation
 
@@ -164,6 +172,34 @@ Auth2: FHIR Backend Authentication (Bearer/OAuth2/SMART on FHIR)
 - Kubernetes security manifests
 - Credential management procedures
 - Audit logging implementation
+
+## MCP Apps (Interactive UIs)
+
+LangCare MCP FHIR ships with built-in **MCP Apps** — interactive, rich UI views that run directly inside MCP-capable hosts like Claude Desktop. Unlike traditional chat-based tool output, MCP Apps render full React-based interfaces with charts, tables, and interactive controls while using the same underlying FHIR tools.
+
+**How it works:** Each app is a single-file HTML bundle (React + TypeScript, compiled with Vite) that gets embedded into the Go binary at compile time via `go:embed`. At runtime the MCP server registers each app as both an MCP Resource (`text/html;profile=mcp-app`) and a dedicated MCP Tool linked via `_meta.ui.resourceUri`. When an MCP host calls the tool, it fetches the resource and renders the UI. The app calls back into the server's generic FHIR tools (`fhir_search`, `fhir_read`, etc.) through `app.callServerTool()` — no LLM round-trips for data fetching.
+
+**Advantages over plain tool output:**
+- **Rich visualization** — SVG charts, color-coded cards, expandable detail panels
+- **Interactive controls** — search fields, date range pickers, click-to-expand rows
+- **Deterministic data fetching** — apps call FHIR tools directly, no LLM involvement in data retrieval
+- **Zero external dependencies** — everything inlines into a single HTML file, embedded in the binary
+- **Works offline** — no CDN, no external scripts, no network requests beyond FHIR API calls
+
+### Built-in Apps
+
+| App | Tool | Description |
+|-----|------|-------------|
+| **FHIR Explorer** | `fhir_explorer` | Interactive FHIR resource browser. Search, read, create, and update any FHIR R4 resource type with JSON detail views. |
+| **Patient Chart Review** | `patient_chart_review` | Clinical dashboard with patient demographics, active conditions, medications, vitals, labs, and vitals trend charts (BP + weight over time). |
+
+Both apps are reference implementations demonstrating the MCP Apps pattern. See **[apps/README.md](apps/README.md)** for architecture details and how to build new apps.
+
+<p align="center">
+  <img src="docs/images/patient-chart-review.png" alt="Patient Chart Review — clinical dashboard with vitals trends, conditions, medications, and labs" width="660" />
+  <br />
+  <em>Patient Chart Review running inside Claude Desktop</em>
+</p>
 
 ## Agent Usage
 
@@ -350,6 +386,12 @@ langcare-mcp-fhir/
 │   └── server/
 │       └── main.go                          # Entry point
 ├── internal/
+│   ├── apps/                                # MCP Apps (embedded UIs)
+│   │   ├── embed.go                         # go:embed directive for HTML bundles
+│   │   ├── registry.go                      # App metadata, tool names, resource URIs
+│   │   └── dist/                            # Built HTML bundles (copied by build)
+│   │       ├── fhir-explorer.html           # FHIR Explorer single-file bundle
+│   │       └── patient-chart-review.html    # Patient Chart Review single-file bundle
 │   ├── audit/
 │   │   └── logger.go                        # HIPAA audit logging
 │   ├── config/
@@ -363,7 +405,7 @@ langcare-mcp-fhir/
 │   │       ├── cerner.go                    # Cerner OAuth2 provider
 │   │       └── gcp.go                       # GCP Healthcare API provider
 │   ├── mcp/
-│   │   └── server.go                        # MCP server initialization
+│   │   └── server.go                        # MCP server + app registration
 │   ├── middleware/
 │   │   ├── auth.go                          # MCP authentication
 │   │   └── rate_limit.go                    # Rate limiting
@@ -376,6 +418,24 @@ langcare-mcp-fhir/
 │   └── transport/
 │       ├── stdio.go                         # stdio transport (Claude Desktop)
 │       └── http.go                          # Streamable HTTP transport (production)
+├── apps/                                    # MCP App source code (React + TypeScript)
+│   ├── README.md                            # App development guide
+│   ├── package.json                         # Shared dependencies (React 19, MCP Apps SDK)
+│   ├── vite.config.ts                       # Vite build config (single-file output)
+│   ├── tsconfig.json                        # TypeScript config
+│   ├── fhir-explorer/                       # FHIR Explorer app
+│   │   ├── index.html
+│   │   └── src/
+│   │       ├── app.tsx
+│   │       └── global.css
+│   └── patient-chart-review/                # Patient Chart Review app
+│       ├── index.html
+│       └── src/
+│           ├── app.tsx
+│           └── global.css
+├── scripts/
+│   ├── build-apps.sh                        # Build all apps → internal/apps/dist/
+│   └── create_jwks.sh                       # Generate JWKS from public key (EPIC)
 ├── pkg/
 │   └── types/
 │       └── errors.go                        # Custom error types
@@ -400,8 +460,6 @@ langcare-mcp-fhir/
 │   ├── config.fly.epic.yaml                 # Fly.io EPIC provider config
 │   ├── config.fly.gcp.yaml                  # Fly.io GCP provider config
 │   └── README.md                            # Fly.io deployment guide
-├── scripts/
-│   └── create_jwks.sh                       # Generate JWKS from public key (used for EPIC FHIR)
 ├── bin/                                     # Build output (gitignored)
 │   └── langcare-mcp-fhir                    # Compiled binary
 ├── go.mod                                   # Go module definition
@@ -415,6 +473,7 @@ langcare-mcp-fhir/
 - `config.local.*.yaml` - Local configuration files
 - `bin/` - Compiled binaries
 - `.env` - Environment variables
+- `apps/node_modules/`, `apps/dist/`, `apps/dist-tmp/` - App build artifacts
 
 ## Documentation
 
@@ -488,7 +547,14 @@ There are three main ways to contribute:
 
 Skills are agent-agnostic workflow guides that work across Claude, ChatGPT, and Gemini. No coding required - just clinical expertise and FHIR knowledge!
 
-### 3. Agent Integrations (Platform Setup)
+### 3. MCP Apps (Interactive UIs)
+- New clinical or administrative UI apps
+- Enhancements to existing apps (FHIR Explorer, Patient Chart Review)
+- Reusable components and patterns for healthcare UIs
+
+See **[apps/README.md](apps/README.md)** for the development guide.
+
+### 4. Agent Integrations (Platform Setup)
 - Setup guides for new AI platforms
 - Deployment examples (Docker, Kubernetes, cloud)
 - Monitoring and observability setups

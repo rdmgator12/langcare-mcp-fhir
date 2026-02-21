@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 
+	"github.com/langcare/langcare-mcp-fhir/internal/apps"
 	"github.com/langcare/langcare-mcp-fhir/internal/config"
 	"github.com/langcare/langcare-mcp-fhir/internal/fhir"
 	"github.com/langcare/langcare-mcp-fhir/internal/tools"
@@ -39,6 +41,9 @@ func NewServer(fhirClient fhir.Client, toolRegistry *tools.Registry, cfg *config
 	if err := server.registerTools(); err != nil {
 		return nil, fmt.Errorf("failed to register tools: %w", err)
 	}
+
+	// Register MCP App tools and resources
+	server.registerApps()
 
 	return server, nil
 }
@@ -101,6 +106,67 @@ func (s *Server) registerTools() error {
 	}
 
 	return nil
+}
+
+// registerApps registers MCP App resources and their dedicated tools.
+// Each app gets a UI resource and a wrapper tool linked via _meta.ui.resourceUri.
+// The View calls generic FHIR tools (fhir_search, fhir_read, etc.) via app.callServerTool().
+func (s *Server) registerApps() {
+	for _, appConfig := range apps.DefaultApps {
+		appConfig := appConfig // capture loop variable
+
+		html, err := apps.LoadAppHTML(appConfig.Name)
+		if err != nil {
+			log.Printf("Warning: could not load app %s: %v", appConfig.Name, err)
+			continue
+		}
+
+		// Register the UI resource
+		s.mcpServer.AddResource(
+			&mcp.Resource{
+				URI:         appConfig.ResourceURI,
+				Name:        appConfig.Name,
+				Description: appConfig.Description,
+				MIMEType:    "text/html;profile=mcp-app",
+			},
+			func(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+				return &mcp.ReadResourceResult{
+					Contents: []*mcp.ResourceContents{
+						{
+							URI:      appConfig.ResourceURI,
+							MIMEType: "text/html;profile=mcp-app",
+							Text:     html,
+						},
+					},
+				}, nil
+			},
+		)
+
+		// Register the dedicated app tool with _meta.ui linking to the resource
+		s.mcpServer.AddTool(
+			&mcp.Tool{
+				Name:        appConfig.ToolName,
+				Description: appConfig.ToolDesc,
+				InputSchema: json.RawMessage(`{"type": "object"}`),
+				Meta: mcp.Meta{
+					"ui": map[string]interface{}{
+						"resourceUri": appConfig.ResourceURI,
+					},
+				},
+			},
+			func(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+				return &mcp.CallToolResult{
+					Content: []mcp.Content{
+						&mcp.TextContent{
+							Text: fmt.Sprintf("%s — open in an MCP Apps-capable host to see the interactive UI.", appConfig.Description),
+						},
+					},
+				}, nil
+			},
+		)
+
+		log.Printf("Registered MCP App: %s (tool: %s)", appConfig.Name, appConfig.ToolName)
+	}
 }
 
 // convertToJSONSchema converts a map to JSON schema format
