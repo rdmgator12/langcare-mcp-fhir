@@ -1,5 +1,46 @@
 # LangCare MCP FHIR Server - Release Highlights
 
+## v2.3.0 — MCP Apps Support
+
+LangCare MCP FHIR now ships with built-in **[MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview)** — interactive, rich UI views that render directly inside MCP-capable hosts like Claude Desktop. Apps call the server's FHIR tools deterministically via `app.callServerTool()` — no LLM round-trips for data fetching.
+
+### Built-in Apps
+
+| App | Tool | Description |
+|-----|------|-------------|
+| **FHIR Explorer** | `fhir_explorer` | Interactive FHIR resource browser — search, read, create, and update any FHIR R4 resource type with JSON detail views and search presets |
+| **Patient Chart Review** | `patient_chart_review` | Clinical dashboard — patient demographics, active conditions, medications, vitals, labs, and SVG-based vitals trend charts (Blood Pressure + Weight) over selectable date ranges (1M/3M/6M/1Y) |
+
+### How It Works
+
+- Each app is a **single-file HTML bundle** (React 19 + TypeScript, compiled with Vite) embedded into the Go binary at compile time via `go:embed`
+- At runtime, the server registers each app as an **MCP Resource** (`text/html;profile=mcp-app`) and a **dedicated MCP Tool** linked via `_meta.ui.resourceUri`
+- When an MCP host calls the tool, it fetches the resource and renders the interactive UI
+- The app calls back into the server's generic FHIR tools (`fhir_search`, `fhir_read`, `fhir_create`, `fhir_update`) through the MCP protocol
+
+### Key Properties
+
+- **Zero external dependencies** — all JS/CSS inlined into a single HTML file, no CDN or external scripts
+- **Deterministic data fetching** — apps call FHIR tools directly, no LLM involvement in data retrieval
+- **Works with all transports** — stdio (Claude Desktop) and Streamable HTTP (remote deployments)
+- **Extensible** — add new apps by creating a React component and registering it in the Go app registry
+
+### Build Pipeline
+
+```
+apps/{name}/src/app.tsx  →  Vite + singlefile  →  internal/apps/dist/{name}.html  →  go:embed  →  binary
+```
+
+```bash
+make apps         # Build app HTML bundles only
+make build        # Build apps + Go binary
+make build-all    # Build apps + cross-platform binaries
+```
+
+**Development guide:** [apps/README.md](apps/README.md)
+
+---
+
 ## v2.2.0 — Remote HTTP Server Deployment
 
 Deploy LangCare MCP FHIR Server as a **remote Streamable HTTP MCP server** accessible by any AI agent from anywhere. Includes a reference implementation for Fly.io with full provider support for EPIC, Cerner, and GCP Healthcare API.
