@@ -12,6 +12,7 @@
 *.test
 CLAUDE.md
 CLAUDE-original.md
+CLAUDE*.md
 .claude/
 
 # Code coverage profiles and other test artifacts

@@ -1,0 +1,8 @@
+agent_name = "healthcare-voice-agent"
+secret_set = "healthcare-secrets"
+agent_profile = "agent-1x"
+region = "us-east"
+
+[scaling]
+min_agents = 1
+max_agents = 10
