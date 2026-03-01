@@ -4,6 +4,10 @@ Real-time voice AI agent that connects patients to their electronic health recor
 
 ## Architecture
 
+<p align="center">
+  <img src="../docs/images/healthcare-voice-agent-architecture.svg" alt="Healthcare Voice Agent Architecture — PipeCat + LangCare MCP" width="700" />
+</p>
+
 ```
 Audio In → DeepGram STT → Claude (Anthropic) → Cartesia TTS → Audio Out
                                ↓

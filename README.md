@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/github/license/langcare/langcare-mcp-fhir)](https://github.com/langcare/langcare-mcp-fhir/blob/main/LICENSE)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/langcare/langcare-mcp-fhir)](https://github.com/langcare/langcare-mcp-fhir/blob/main/go.mod)
 
-Enterprise-grade MCP Server for FHIR-based EMRs, designed for robust deployments in agentic AI platforms. Fully written in Go with enterprise-grade security and generic FHIR operations that work with any FHIR R4 resource type. Ships with a **[40+ Clinical Skills Library](skills/README.md)** — agent-agnostic workflow guides covering medication management, lab interpretation, clinical decision support, documentation, population health, and more. **&#11088; New: LangCare now supports [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview)** — interactive clinical UIs embedded directly in the server. [Learn more](apps/README.md).
+Enterprise-grade MCP Server for FHIR-based EMRs, designed for robust deployments in agentic AI platforms. Fully written in Go with enterprise-grade security and generic FHIR operations that work with any FHIR R4 resource type. Ships with a **[40+ Clinical Skills Library](skills/README.md)** — agent-agnostic workflow guides covering medication management, lab interpretation, clinical decision support, documentation, population health, and more. **&#11088; New: LangCare now supports [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview)** — interactive clinical UIs embedded directly in the server. [Learn more](apps/README.md). **&#11088; New: [Healthcare Voice Agent](pipecat-agent/README.md)** — real-time voice AI that lets patients ask about their health records and get spoken answers from their EMR, powered by PipeCat + LangCare MCP.
 
 <p align="center">
   <a href="https://langcare.ai">
@@ -474,6 +474,24 @@ langcare-mcp-fhir/
 - `bin/` - Compiled binaries
 - `.env` - Environment variables
 - `apps/node_modules/`, `apps/dist/`, `apps/dist-tmp/` - App build artifacts
+
+## Healthcare Voice Agent
+
+Real-time voice AI that lets patients ask about their health records and get spoken answers pulled directly from their EMR.
+
+<p align="center">
+  <img src="docs/images/healthcare-voice-agent-architecture.svg" alt="Healthcare Voice Agent Architecture — PipeCat + LangCare MCP" width="700" />
+</p>
+
+**The stack:** [PipeCat](https://docs.pipecat.ai/) (open-source, Daily.co) for the voice pipeline — STT, LLM orchestration, TTS with sub-3-second latency. Claude for clinical reasoning and tool calling. LangCare MCP FHIR Server (open-source, Go) as a stateless proxy to any FHIR R4 EMR — Epic, Cerner, GCP Healthcare API.
+
+**MCP is the glue.** PipeCat's native MCP client auto-discovers FHIR tools at startup. Patient asks "What medications am I on?" — Claude calls `fhir_search` — PipeCat routes it to the MCP server — data comes back — Claude responds in natural speech. No manual tool schemas needed.
+
+**Three-layer HIPAA auth:** Caller identity verified before the session starts, bearer token to MCP, OAuth2/SMART on FHIR to EMR. Zero PHI storage.
+
+**Everything is swappable.** Replace Claude with Gemini, DeepGram with Google STT, Daily with WebSocket. The MCP FHIR layer and clinical prompts stay the same.
+
+**[Full documentation and setup guide](pipecat-agent/README.md)**
 
 ## Documentation
 
