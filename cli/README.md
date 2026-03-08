@@ -6,24 +6,9 @@ Built for AI agents that don't speak MCP natively — LangChain, smolagents, Cre
 
 ## Architecture
 
-```
-MCP-native agents:                    Non-MCP agents:
-  Claude Desktop ──┐                    LangChain ──────┐
-  PipeCat ─────────┤                    smolagents ─────┤
-                   │                    CrewAI ─────────┤
-                   ▼                    AutoGen ────────┤
-              MCP Protocol                              ▼
-                   │                              CLI subprocess
-                   │                          langcare fhir search ...
-                   │                                    │
-                   │                              HTTP POST /mcp
-                   │                          (initialize → tools/call)
-                   ▼                                    ▼
-              LangCare MCP Server (local or Fly.io)
-                   │
-                   ▼
-              EMR (Epic / Cerner / GCP Healthcare API / HAPI FHIR)
-```
+<p align="center">
+  <img src="../docs/images/langcare-cli.png" alt="LangCare CLI Architecture" width="700" />
+</p>
 
 The CLI handles the MCP protocol internally — agents never see JSON-RPC, session IDs, or SSE. They get clean JSON on stdout.
 

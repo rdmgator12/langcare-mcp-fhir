@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LangCare CLI — Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0a0e1a;
+    --surface:   #111827;
+    --surface2:  #1a2235;
+    --border:    #1e2d45;
+    --accent:    #00d4ff;
+    --accent2:   #7c3aed;
+    --accent3:   #10b981;
+    --accent4:   #f59e0b;
+    --text:      #e2e8f0;
+    --muted:     #64748b;
+    --mono:      'Space Mono', monospace;
+    --sans:      'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 40px 20px 60px;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 52px;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 4px 12px;
+    border-radius: 2px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-family: var(--mono);
+    font-size: clamp(24px, 4vw, 38px);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 300;
+    max-width: 560px;
+    margin-inline: auto;
+    line-height: 1.6;
+  }
+
+  /* ── Section labels ── */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    padding-left: 2px;
+  }
+
+  /* ── Main layout ── */
+  .diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* ── Row ── */
+  .row {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .row:nth-child(1) { animation-delay: 0.1s; }
+  .row:nth-child(2) { animation-delay: 0.2s; }
+  .row:nth-child(3) { animation-delay: 0.3s; }
+  .row:nth-child(4) { animation-delay: 0.4s; }
+  .row:nth-child(5) { animation-delay: 0.5s; }
+
+  /* ── Arrow row ── */
+  .arrow-row {
+    display: flex;
+    justify-content: center;
+    padding: 6px 0;
+    animation: fadeUp 0.5s ease both;
+    animation-delay: 0.25s;
+  }
+
+  .arrow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 80px;
+  }
+
+  .arrow-line {
+    width: 2px;
+    height: 20px;
+    background: linear-gradient(to bottom, var(--border), var(--accent));
+    opacity: 0.6;
+  }
+
+  .arrow-tip {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7px solid var(--accent);
+    opacity: 0.6;
+  }
+
+  .arrow-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 20px;
+    flex: 1;
+    position: relative;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  .card-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-blue   { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+  .dot-purple { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+  .dot-green  { background: var(--accent3); box-shadow: 0 0 6px var(--accent3); }
+  .dot-amber  { background: var(--accent4); box-shadow: 0 0 6px var(--accent4); }
+
+  /* ── Agent cards (top row) ── */
+  .agents-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 0;
+  }
+
+  .agent-group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 20px;
+    transition: border-color 0.2s;
+  }
+
+  .agent-group:hover { border-color: rgba(0,212,255,0.3); }
+
+  .agent-group-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .agent-group-title.native  { color: var(--accent3); }
+  .agent-group-title.non-mcp { color: var(--accent4); }
+
+  .agent-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+
+  .pill-green  { color: var(--accent3); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.06); }
+  .pill-amber  { color: var(--accent4); border-color: rgba(245,158,11,0.3);  background: rgba(245,158,11,0.06); }
+  .pill-blue   { color: var(--accent);  border-color: rgba(0,212,255,0.3);   background: rgba(0,212,255,0.06); }
+  .pill-purple { color: #a78bfa;        border-color: rgba(124,58,237,0.3);  background: rgba(124,58,237,0.06); }
+
+  .connect-note {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  /* ── CLI card ── */
+  .cli-card {
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cli-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .cli-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .cli-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  .cli-desc {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 3px;
+    line-height: 1.5;
+  }
+
+  .cli-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent2);
+    border: 1px solid var(--accent2);
+    padding: 3px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  /* ── Commands grid ── */
+  .commands-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .cmd-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 12px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .cmd-card:hover {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.05);
+  }
+
+  .cmd-name {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .cmd-mcp {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .cmd-args {
+    font-size: 10px;
+    color: #94a3b8;
+    line-height: 1.5;
+  }
+
+  .cmd-args span {
+    display: block;
+    font-family: var(--mono);
+    font-size: 9px;
+  }
+
+  /* ── Session flow ── */
+  .session-flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+
+  .flow-step {
+    color: var(--text);
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.2);
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+  }
+
+  .flow-arrow {
+    color: var(--accent);
+    font-size: 12px;
+  }
+
+  .flow-note {
+    color: var(--muted);
+    font-size: 10px;
+  }
+
+  /* ── Split row ── */
+  .split-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* ── Skills card ── */
+  .skills-card {
+    background: var(--surface);
+    border: 1px solid rgba(124,58,237,0.4);
+    border-radius: 6px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .skills-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent2), #ec4899);
+  }
+
+  .skill-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .skill-pill {
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    color: #a78bfa;
+    border: 1px solid rgba(124,58,237,0.25);
+    background: rgba(124,58,237,0.07);
+    letter-spacing: 0.5px;
+  }
+
+  .skills-note {
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: 4px;
+    border-left: 2px solid var(--accent2);
+  }
+
+  /* ── Config card ── */
+  .config-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 20px;
+  }
+
+  .env-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .env-row:last-child { border-bottom: none; }
+
+  .env-key {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent3);
+    white-space: nowrap;
+    min-width: 170px;
+  }
+
+  .env-default {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent4);
+  }
+
+  .env-desc {
+    font-size: 11px;
+    color: var(--muted);
+    flex: 1;
+  }
+
+  /* ── MCP Server card ── */
+  .server-card {
+    background: var(--surface);
+    border: 1px solid rgba(16,185,129,0.3);
+    border-radius: 6px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .server-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent3), var(--accent));
+  }
+
+  .server-modes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .mode-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 12px;
+  }
+
+  .mode-box.active { border-color: rgba(16,185,129,0.4); }
+
+  .mode-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent3);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mode-url {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    word-break: break-all;
+  }
+
+  .mode-desc {
+    font-size: 10px;
+    color: #94a3b8;
+  }
+
+  /* ── EMR row ── */
+  .emr-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .emr-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    text-align: center;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .emr-card:hover {
+    border-color: rgba(16,185,129,0.4);
+    transform: translateY(-2px);
+  }
+
+  .emr-icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+
+  .emr-name {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .emr-sub {
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  /* ── Output section ── */
+  .output-section {
+    margin-top: 48px;
+    animation: fadeUp 0.5s ease 0.6s both;
+  }
+
+  .output-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .output-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .output-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 18px;
+    transition: border-color 0.2s;
+  }
+
+  .output-card:hover { border-color: rgba(0,212,255,0.3); }
+
+  .output-card-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  pre {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #94a3b8;
+    background: var(--surface2);
+    border-radius: 4px;
+    padding: 10px 12px;
+    overflow-x: auto;
+    line-height: 1.6;
+    border: 1px solid var(--border);
+  }
+
+  pre .key   { color: var(--accent); }
+  pre .val   { color: var(--accent3); }
+  pre .err   { color: #f87171; }
+  pre .str   { color: var(--accent4); }
+
+  /* Exit codes */
+  .exit-codes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+
+  .exit-code {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .exit-num {
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .exit-0 { color: var(--accent3); border-color: rgba(16,185,129,0.3); }
+  .exit-1 { color: #f87171;        border-color: rgba(248,113,113,0.3); }
+  .exit-2 { color: var(--accent4); border-color: rgba(245,158,11,0.3); }
+  .exit-3 { color: #a78bfa;        border-color: rgba(167,139,250,0.3); }
+  .exit-4 { color: var(--muted);   border-color: var(--border); }
+
+  /* ── Distribution ── */
+  .dist-section {
+    margin-top: 48px;
+    animation: fadeUp 0.5s ease 0.7s both;
+  }
+
+  .dist-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .dist-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 18px;
+  }
+
+  .dist-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 700px) {
+    .agents-row, .split-row, .dist-grid, .output-grid { grid-template-columns: 1fr; }
+    .commands-grid, .emr-row { grid-template-columns: repeat(2, 1fr); }
+    .server-modes { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">Architecture Overview</div>
+    <h1>LangCare <span>CLI</span></h1>
+    <p class="subtitle">FHIR tools over MCP — bridging non-MCP AI agents to the LangCare MCP FHIR Server with shared Clinical Skills</p>
+  </div>
+
+  <div class="diagram">
+
+    <!-- ── ROW 1: Agents ── -->
+    <div class="section-label">AI Agents</div>
+    <div class="agents-row" style="animation: fadeUp 0.5s ease 0.1s both; opacity:0">
+      <div class="agent-group">
+        <div class="agent-group-title native">
+          <span style="width:7px;height:7px;border-radius:50%;background:var(--accent3);display:inline-block;box-shadow:0 0 6px var(--accent3)"></span>
+          MCP-Native Agents — connect directly
+        </div>
+        <div class="agent-pills">
+          <span class="pill pill-green">Claude Desktop</span>
+          <span class="pill pill-green">PipeCat</span>
+          <span class="pill pill-green">Claude Code</span>
+        </div>
+        <p class="connect-note">Speak MCP natively — connect directly to <code style="color:var(--accent3);font-size:10px">/mcp</code> endpoint. CLI not needed.</p>
+      </div>
+      <div class="agent-group">
+        <div class="agent-group-title non-mcp">
+          <span style="width:7px;height:7px;border-radius:50%;background:var(--accent4);display:inline-block;box-shadow:0 0 6px var(--accent4)"></span>
+          Non-MCP Agents — use CLI as subprocess
+        </div>
+        <div class="agent-pills">
+          <span class="pill pill-amber">OpenClaw</span>
+          <span class="pill pill-amber">LangChain</span>
+          <span class="pill pill-amber">smolagents</span>
+          <span class="pill pill-amber">CrewAI</span>
+          <span class="pill pill-amber">AutoGen</span>
+          <span class="pill pill-purple">Any Framework</span>
+        </div>
+        <p class="connect-note">Call <code style="color:var(--accent4);font-size:10px">langcare fhir search ...</code> as a subprocess tool. CLI handles MCP internally.</p>
+      </div>
+    </div>
+
+    <!-- Arrow down -->
+    <div class="arrow-row">
+      <div class="arrow-col">
+        <div class="arrow-line"></div>
+        <div class="arrow-tip"></div>
+        <div class="arrow-label">subprocess / MCP</div>
+      </div>
+    </div>
+
+    <!-- ── ROW 2: Skills (shared) ── -->
+    <div class="section-label">Clinical Skills Library — Same Skills, Any Agent</div>
+    <div style="animation: fadeUp 0.5s ease 0.2s both; opacity:0">
+      <div class="skills-card">
+        <div class="cli-header" style="margin-bottom:10px">
+          <div>
+            <div class="cli-name" style="color:#a78bfa">📋 LangCare Skills Library (40+)</div>
+            <div class="cli-desc">Agent-agnostic clinical workflow guides — reference tool names only, never HTTP / MCP / CLI specifics</div>
+          </div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--accent2);border:1px solid var(--accent2);padding:3px 8px;border-radius:2px;white-space:nowrap">ZERO CHANGES NEEDED</div>
+        </div>
+        <div class="skill-pills">
+          <span class="skill-pill">med-reconciliation</span>
+          <span class="skill-pill">sepsis-qsofa</span>
+          <span class="skill-pill">drug-interaction</span>
+          <span class="skill-pill">diabetes-panel</span>
+          <span class="skill-pill">discharge-planning</span>
+          <span class="skill-pill">allergy-review</span>
+          <span class="skill-pill">lab-interpretation</span>
+          <span class="skill-pill">cardiac-risk</span>
+          <span class="skill-pill">vte-screening</span>
+          <span class="skill-pill">prenatal-screening</span>
+          <span class="skill-pill">fall-risk</span>
+          <span class="skill-pill">immunization-check</span>
+          <span class="skill-pill">+ 28 more</span>
+        </div>
+        <div class="skills-note">
+          Skills say <strong style="color:#a78bfa">"use fhir_search to find active medications"</strong> — the agent resolves this to either
+          the MCP client (native) or <strong style="color:var(--accent4)">langcare fhir search MedicationRequest --query "patient=123&amp;status=active"</strong> (CLI).
+          Same skill, both paths, identical results.
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow down -->
+    <div class="arrow-row">
+      <div class="arrow-col">
+        <div class="arrow-line"></div>
+        <div class="arrow-tip"></div>
+        <div class="arrow-label">tool call</div>
+      </div>
+    </div>
+
+    <!-- ── ROW 3: CLI ── -->
+    <div class="section-label">LangCare CLI — Python Package</div>
+    <div style="animation: fadeUp 0.5s ease 0.3s both; opacity:0">
+      <div class="cli-card">
+        <div class="cli-header">
+          <div>
+            <div class="cli-name">langcare-cli</div>
+            <div class="cli-desc">Python · pip install · handles MCP session handshake internally · always outputs JSON</div>
+          </div>
+          <div class="cli-tag">pip install langcare-cli</div>
+        </div>
+
+        <!-- 4 commands -->
+        <div class="commands-grid">
+          <div class="cmd-card">
+            <div class="cmd-name">fhir search</div>
+            <div class="cmd-mcp">→ fhir_search</div>
+            <div class="cmd-args">
+              <span>resourceType</span>
+              <span>--query &lt;params&gt;</span>
+            </div>
+          </div>
+          <div class="cmd-card">
+            <div class="cmd-name">fhir read</div>
+            <div class="cmd-mcp">→ fhir_read</div>
+            <div class="cmd-args">
+              <span>resourceType</span>
+              <span>&lt;id&gt;</span>
+            </div>
+          </div>
+          <div class="cmd-card">
+            <div class="cmd-name">fhir create</div>
+            <div class="cmd-mcp">→ fhir_create</div>
+            <div class="cmd-args">
+              <span>resourceType</span>
+              <span>--data &lt;json|@file&gt;</span>
+            </div>
+          </div>
+          <div class="cmd-card">
+            <div class="cmd-name">fhir update</div>
+            <div class="cmd-mcp">→ fhir_update</div>
+            <div class="cmd-args">
+              <span>resourceType &lt;id&gt;</span>
+              <span>--data &lt;json|@file&gt;</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Session flow -->
+        <div class="session-flow">
+          <span style="color:var(--muted);font-size:10px">Every call:</span>
+          <span class="flow-step">1. POST initialize</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-step">2. Extract Mcp-Session-Id (if returned)</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-step">3. POST tools/call</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-step">4. Parse JSON / SSE</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-step">5. stdout JSON</span>
+          <span class="flow-note" style="margin-left:8px">~20ms overhead</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow down -->
+    <div class="arrow-row">
+      <div class="arrow-col">
+        <div class="arrow-line"></div>
+        <div class="arrow-tip"></div>
+        <div class="arrow-label">HTTP POST /mcp · Bearer token</div>
+      </div>
+    </div>
+
+    <!-- ── ROW 4: MCP Server + Config ── -->
+    <div class="section-label">LangCare MCP FHIR Server</div>
+    <div class="split-row" style="animation: fadeUp 0.5s ease 0.4s both; opacity:0">
+      <div class="server-card">
+        <div class="cli-name" style="color:var(--accent3)">langcare-mcp-fhir</div>
+        <div class="cli-desc" style="margin-top:4px">Go · Stateless proxy · Streamable HTTP · Zero PHI storage · Audit logging</div>
+        <div class="server-modes">
+          <div class="mode-box active">
+            <div class="mode-title">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--accent3);display:inline-block"></span>
+              Local
+            </div>
+            <div class="mode-url">http://localhost:8080</div>
+            <div class="mode-desc">Run via <code style="color:var(--accent3);font-size:9px">make run-http</code><br>Default — no config needed</div>
+          </div>
+          <div class="mode-box active">
+            <div class="mode-title">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block"></span>
+              Remote · Fly.io
+            </div>
+            <div class="mode-url">https://langcare-mcp-dev.fly.dev<br>https://langcare-mcp-prod.fly.dev</div>
+            <div class="mode-desc">Always-on · HTTPS · Auto-scaling</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-card">
+        <div class="card-title">
+          <span class="dot dot-amber"></span>
+          Configuration
+        </div>
+        <div class="env-row">
+          <div class="env-key">LANGCARE_SERVER</div>
+          <div class="env-default">localhost:8080</div>
+          <div class="env-desc">MCP server URL — local or Fly.io</div>
+        </div>
+        <div class="env-row">
+          <div class="env-key">LANGCARE_API_KEY</div>
+          <div class="env-default">required</div>
+          <div class="env-desc">Bearer token for MCP auth</div>
+        </div>
+        <div style="margin-top:14px;font-size:11px;color:var(--muted);line-height:1.7">
+          Also overridable via CLI flags:<br>
+          <code style="font-family:var(--mono);font-size:10px;color:var(--accent)">langcare --server URL --token TOKEN fhir ...</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow down -->
+    <div class="arrow-row">
+      <div class="arrow-col">
+        <div class="arrow-line"></div>
+        <div class="arrow-tip"></div>
+        <div class="arrow-label">FHIR R4 REST · OAuth2 / SMART on FHIR</div>
+      </div>
+    </div>
+
+    <!-- ── ROW 5: EMR ── -->
+    <div class="section-label">EMR Systems</div>
+    <div class="emr-row" style="animation: fadeUp 0.5s ease 0.5s both; opacity:0">
+      <div class="emr-card">
+        <div class="emr-icon">🏥</div>
+        <div class="emr-name">Epic</div>
+        <div class="emr-sub">FHIR R4<br>SMART on FHIR</div>
+      </div>
+      <div class="emr-card">
+        <div class="emr-icon">⚕️</div>
+        <div class="emr-name">Cerner</div>
+        <div class="emr-sub">Oracle Health<br>FHIR R4</div>
+      </div>
+      <div class="emr-card">
+        <div class="emr-icon">☁️</div>
+        <div class="emr-name">GCP Healthcare</div>
+        <div class="emr-sub">Healthcare API<br>FHIR R4</div>
+      </div>
+      <div class="emr-card">
+        <div class="emr-icon">🧪</div>
+        <div class="emr-name">HAPI FHIR</div>
+        <div class="emr-sub">Public test server<br>No credentials</div>
+      </div>
+    </div>
+
+  </div><!-- /diagram -->
+
+  <!-- ── Output & Exit Codes ── -->
+  <div class="output-section">
+    <div class="output-title">Output Contract</div>
+    <div class="output-grid">
+      <div class="output-card">
+        <div class="output-card-title">
+          <span style="width:7px;height:7px;border-radius:50%;background:var(--accent3);display:inline-block;box-shadow:0 0 5px var(--accent3)"></span>
+          <span style="color:var(--accent3)">stdout — Success</span>
+        </div>
+        <pre><span class="key">{
+  "resourceType"</span>: <span class="str">"Bundle"</span>,
+  <span class="key">"type"</span>: <span class="str">"searchset"</span>,
+  <span class="key">"total"</span>: <span class="val">3</span>,
+  <span class="key">"entry"</span>: [<span class="val">...</span>]
+}</pre>
+      </div>
+      <div class="output-card">
+        <div class="output-card-title">
+          <span style="width:7px;height:7px;border-radius:50%;background:#f87171;display:inline-block;box-shadow:0 0 5px #f87171"></span>
+          <span style="color:#f87171">stdout — Error</span>
+        </div>
+        <pre><span class="key">{
+  "error"</span>: <span class="err">"auth_error"</span>,
+  <span class="key">"code"</span>: <span class="val">401</span>,
+  <span class="key">"message"</span>: <span class="str">"Invalid token"</span>
+}
+
+<span class="key">{"error"</span>: <span class="err">"network_error"</span>,
+ <span class="key">"message"</span>: <span class="str">"...running?"</span><span class="key">}</span></pre>
+      </div>
+      <div class="output-card">
+        <div class="output-card-title">
+          <span style="width:7px;height:7px;border-radius:50%;background:var(--accent4);display:inline-block;box-shadow:0 0 5px var(--accent4)"></span>
+          <span style="color:var(--accent4)">Exit Codes</span>
+        </div>
+        <div class="exit-codes" style="flex-direction:column;gap:6px;margin-top:0">
+          <div class="exit-code exit-0"><span class="exit-num">0</span> Success — FHIR data in stdout</div>
+          <div class="exit-code exit-1"><span class="exit-num">1</span> FHIR / MCP error</div>
+          <div class="exit-code exit-2"><span class="exit-num">2</span> Auth error — bad token</div>
+          <div class="exit-code exit-3"><span class="exit-num">3</span> Network — server not reachable</div>
+          <div class="exit-code exit-4"><span class="exit-num">4</span> Invalid arguments</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Distribution ── -->
+  <div class="dist-section">
+    <div class="output-title">Distribution</div>
+    <div class="dist-grid">
+      <div class="dist-card">
+        <div class="dist-title">Option 1 — GitHub (now)</div>
+        <pre style="font-size:10px"><span class="key">pip install</span> <span class="str">"langcare-cli @ git+https://
+  github.com/langcare/langcare-mcp-fhir.git
+  #subdirectory=cli"</span>
+
+<span class="val">pipx install</span> <span class="str">"langcare-cli @ ..."</span>  <span class="key"># recommended</span></pre>
+      </div>
+      <div class="dist-card">
+        <div class="dist-title">Option 2 — PyPI (production)</div>
+        <pre style="font-size:10px"><span class="key">pip install</span> <span class="str">langcare-cli</span>
+<span class="val">pipx install</span> <span class="str">langcare-cli</span>
+
+<span class="key"># Auto-publish via GitHub Actions
+# on tag:</span> <span class="str">cli/v1.0.0</span></pre>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+</body>
+</html>

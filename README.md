@@ -493,6 +493,29 @@ Real-time voice AI that lets patients ask about their health records and get spo
 
 **[Full documentation and setup guide](pipecat-agent/README.md)**
 
+## LangCare CLI
+
+Command-line interface that wraps the 4 FHIR MCP tools (`fhir_search`, `fhir_read`, `fhir_create`, `fhir_update`) as CLI subcommands over HTTP. Built for AI agent frameworks that don't speak MCP natively — LangChain, smolagents, CrewAI, AutoGen, and any framework that can call a subprocess. The CLI handles the MCP session handshake internally, so agents get clean JSON on stdout with no protocol knowledge required.
+
+<p align="center">
+  <img src="docs/images/langcare-cli.png" alt="LangCare CLI Architecture" width="700" />
+</p>
+
+```bash
+# Install
+pip install "langcare-cli @ git+https://github.com/langcare/langcare-mcp-fhir.git#subdirectory=cli"
+
+# Use
+langcare fhir search Patient --query "name=John"
+langcare fhir read Patient 123
+langcare fhir create Observation --data @obs.json
+langcare fhir update Patient 123 --data @patient.json
+```
+
+The 40+ clinical skills in the [Skills Library](skills/README.md) work as-is — skills reference abstract tool names, not transport. Register the CLI as subprocess tools in your agent framework and skills run without modification.
+
+**[Full documentation and setup guide](cli/README.md)**
+
 ## Documentation
 
 ### Getting Started
