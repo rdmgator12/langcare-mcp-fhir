@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/github/license/langcare/langcare-mcp-fhir)](https://github.com/langcare/langcare-mcp-fhir/blob/main/LICENSE)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/langcare/langcare-mcp-fhir)](https://github.com/langcare/langcare-mcp-fhir/blob/main/go.mod)
 
-Enterprise-grade MCP Server for FHIR-based EMRs, designed for robust deployments in agentic AI platforms. Fully written in Go with enterprise-grade security and generic FHIR operations that work with any FHIR R4 resource type. Ships with a **[40+ Clinical Skills Library](skills/README.md)** — agent-agnostic workflow guides covering medication management, lab interpretation, clinical decision support, documentation, population health, and more. **&#11088; New: LangCare now supports [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview)** — interactive clinical UIs embedded directly in the server. [Learn more](apps/README.md). **&#11088; New: [Healthcare Voice Agent](pipecat-agent/README.md)** — real-time voice AI that lets patients ask about their health records and get spoken answers from their EMR, powered by PipeCat + LangCare MCP. **&#11088; New: [LangCare CLI](cli/README.md)** — a Python CLI that wraps FHIR tools (`fhir_search`, `fhir_read`, `fhir_create`, `fhir_update`) over HTTP for AI agent frameworks that don't speak MCP natively (LangChain, smolagents, CrewAI, AutoGen). Handles MCP session handshake internally, outputs clean JSON to stdout.
+Enterprise-grade MCP Server for FHIR-based EMRs, designed for robust deployments in agentic AI platforms. Fully written in Go with enterprise-grade security and generic FHIR operations that work with any FHIR R4 resource type. Supports **EPIC**, **Cerner**, **OpenEMR**, **GCP Healthcare API**, and any generic FHIR R4 server. Ships with a **[40+ Clinical Skills Library](skills/README.md)** — agent-agnostic workflow guides covering medication management, lab interpretation, clinical decision support, documentation, population health, and more. **&#11088; New: LangCare now supports [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview)** — interactive clinical UIs embedded directly in the server. [Learn more](apps/README.md). **&#11088; New: [Healthcare Voice Agent](pipecat-agent/README.md)** — real-time voice AI that lets patients ask about their health records and get spoken answers from their EMR, powered by PipeCat + LangCare MCP. **&#11088; New: [LangCare CLI](cli/README.md)** — a Python CLI that wraps FHIR tools (`fhir_search`, `fhir_read`, `fhir_create`, `fhir_update`) over HTTP for AI agent frameworks that don't speak MCP natively (LangChain, smolagents, CrewAI, AutoGen). Handles MCP session handshake internally, outputs clean JSON to stdout.
 
 <p align="center">
   <a href="https://langcare.ai">
@@ -39,6 +39,7 @@ Choose your backend:
 
 - **EPIC:** [config.epic.example.yaml](https://github.com/langcare/langcare-mcp-fhir/blob/main/configs/config.epic.example.yaml)
 - **Cerner:** [config.cerner.example.yaml](https://github.com/langcare/langcare-mcp-fhir/blob/main/configs/config.cerner.example.yaml)
+- **OpenEMR:** [config.openemr.example.yaml](https://github.com/langcare/langcare-mcp-fhir/blob/main/configs/config.openemr.example.yaml)
 - **GCP Healthcare API:** [config.gcp.example.yaml](https://github.com/langcare/langcare-mcp-fhir/blob/main/configs/config.gcp.example.yaml)
 - **Any FHIR R4 Server:** [config.base.example.yaml](https://github.com/langcare/langcare-mcp-fhir/blob/main/configs/config.base.example.yaml)
 
@@ -162,7 +163,8 @@ Auth2: FHIR Backend Authentication (Bearer/OAuth2/SMART on FHIR)
 
 - **Bearer Token** - Simple API key authentication
 - **OAuth2** - Full OAuth2 flow with token refresh
-- **SMART on FHIR** - EPIC, Cerner, and other EMR standards
+- **SMART on FHIR Backend Services** - `private_key_jwt` (RS384) for EPIC, OpenEMR, and other SMART-conformant EMRs
+- **SMART on FHIR** - EPIC, Cerner, OpenEMR, and other EMR standards
 - **Basic Auth** - Username/password authentication
 - **Custom** - Extensible for additional auth methods
 
@@ -219,7 +221,7 @@ AI agents use LangCare MCP FHIR Server to help healthcare professionals access a
 
 **System support:**
 - Works with any FHIR R4 resource type (60+ types including DocumentReference, Binary, Media)
-- Automatic authentication and token refresh to EPIC, Cerner, GCP Healthcare API
+- Automatic authentication and token refresh to EPIC, Cerner, OpenEMR, GCP Healthcare API
 - HIPAA-compliant PHI handling with audit logging
 - Comprehensive OAuth2 scopes for clinical data access
 
@@ -403,6 +405,7 @@ langcare-mcp-fhir/
 │   │       ├── base.go                      # Base HTTP provider
 │   │       ├── epic.go                      # EPIC OAuth2 provider
 │   │       ├── cerner.go                    # Cerner OAuth2 provider
+│   │       ├── openemr.go                   # OpenEMR SMART Backend Services provider
 │   │       └── gcp.go                       # GCP Healthcare API provider
 │   ├── mcp/
 │   │   └── server.go                        # MCP server + app registration
@@ -435,18 +438,21 @@ langcare-mcp-fhir/
 │           └── global.css
 ├── scripts/
 │   ├── build-apps.sh                        # Build all apps → internal/apps/dist/
-│   └── create_jwks.sh                       # Generate JWKS from public key (EPIC)
+│   ├── create_jwks.sh                       # Generate JWKS from public key (EPIC)
+│   └── create_jwks_openemr.sh               # Generate JWKS from public key (OpenEMR)
 ├── pkg/
 │   └── types/
 │       └── errors.go                        # Custom error types
 ├── configs/
 │   ├── config.epic.example.yaml             # Example configuration for EPIC
 │   ├── config.cerner.example.yaml           # Example configuration for Cerner
+│   ├── config.openemr.example.yaml          # Example configuration for OpenEMR
 │   ├── config.gcp.example.yaml              # Example configuration for GCP
 │   └── config.base.example.yaml             # Example configuration for any FHIR R4 server
 ├── docs/
 │   ├── AGENT_PROMPT.md                      # AI agent system prompt
 │   ├── EPIC-APP-SECURITY.md                 # EPIC authentication setup
+│   ├── OPENEMR-APP-SECURITY.md              # OpenEMR SMART Backend Services setup
 │   ├── EPIC-SCOPES.md                       # OAuth2 scopes reference
 │   ├── LOCAL-TESTING.md                     # Local development guide
 │   └── SECURITY.md                          # Production security guide
@@ -528,6 +534,7 @@ The 40+ clinical skills in the [Skills Library](skills/README.md) work as-is —
 ### Security & Authentication
 - **[🛡️ Security Documentation](https://github.com/langcare/langcare-mcp-fhir/blob/main/docs/SECURITY.md)** - Complete security architecture and HIPAA compliance
 - **[🔐 EPIC Setup Guide](https://github.com/langcare/langcare-mcp-fhir/blob/main/docs/EPIC-APP-SECURITY.md)** - JWT authentication, key generation, and JWKS registration
+- **[🔐 OpenEMR Setup Guide](https://github.com/langcare/langcare-mcp-fhir/blob/main/docs/OPENEMR-APP-SECURITY.md)** - SMART on FHIR Backend Services (`private_key_jwt`/RS384) setup, JWKS generation, and OpenEMR API client registration
 - **[📋 EPIC Scopes Reference](https://github.com/langcare/langcare-mcp-fhir/blob/main/docs/EPIC-SCOPES.md)** - Complete OAuth2 scopes guide for FHIR resources
 - **[🔑 Authentication Methods](#supported-authentication-methods)** - Supported auth methods
 

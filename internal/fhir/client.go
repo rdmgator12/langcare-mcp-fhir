@@ -35,6 +35,16 @@ func NewClient(cfg config.FHIRServerConfig, logger *slog.Logger) (providers.Prov
 			Scopes:         cfg.EPIC.Scopes,
 		}, logger)
 
+	case "openemr":
+		return providers.NewOpenEMRProvider(&providers.OpenEMRConfig{
+			BaseURL:        cfg.BaseURL,
+			ClientID:       cfg.OpenEMR.ClientID,
+			PrivateKeyPath: cfg.OpenEMR.PrivateKeyPath,
+			TokenURL:       cfg.OpenEMR.TokenURL,
+			KeyID:          cfg.OpenEMR.KeyID,
+			Scopes:         cfg.OpenEMR.Scopes,
+		}, logger)
+
 	case "cerner":
 		return providers.NewCernerProvider(&providers.CernerConfig{
 			BaseURL:      cfg.BaseURL,

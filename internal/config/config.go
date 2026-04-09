@@ -46,14 +46,15 @@ type Config struct {
 
 // FHIRServerConfig contains FHIR server connection settings
 type FHIRServerConfig struct {
-	Provider string            `yaml:"provider"` // gcp, epic, cerner, generic
-	BaseURL  string            `yaml:"base_url"`
-	Auth     AuthConfig        `yaml:"auth"`
-	GCP      GCPConfig         `yaml:"gcp"`
-	EPIC     EPICOAuthConfig   `yaml:"epic"`
-	Cerner   CernerOAuthConfig `yaml:"cerner"`
-	Timeout  time.Duration     `yaml:"timeout"`
-	Headers  map[string]string `yaml:"headers"`
+	Provider string             `yaml:"provider"` // gcp, epic, cerner, openemr, generic
+	BaseURL  string             `yaml:"base_url"`
+	Auth     AuthConfig         `yaml:"auth"`
+	GCP      GCPConfig          `yaml:"gcp"`
+	EPIC     EPICOAuthConfig    `yaml:"epic"`
+	Cerner   CernerOAuthConfig  `yaml:"cerner"`
+	OpenEMR  OpenEMROAuthConfig `yaml:"openemr"`
+	Timeout  time.Duration      `yaml:"timeout"`
+	Headers  map[string]string  `yaml:"headers"`
 }
 
 // AuthConfig contains authentication settings for generic provider
@@ -79,6 +80,16 @@ type EPICOAuthConfig struct {
 	PrivateKeyPath string   `yaml:"private_key_path"` // Path to RSA private key PEM
 	TokenURL       string   `yaml:"token_url"`
 	Scopes         []string `yaml:"scopes"`
+}
+
+// OpenEMROAuthConfig contains OpenEMR SMART on FHIR Backend Services settings
+// (private_key_jwt with RS384, per the SMART on FHIR Backend Services spec).
+type OpenEMROAuthConfig struct {
+	ClientID       string   `yaml:"client_id"`
+	PrivateKeyPath string   `yaml:"private_key_path"` // Path to RSA private key PEM
+	TokenURL       string   `yaml:"token_url"`        // e.g. https://host/oauth2/default/token
+	KeyID          string   `yaml:"key_id"`           // JWK kid registered with OpenEMR
+	Scopes         []string `yaml:"scopes"`           // system/* scopes
 }
 
 // CernerOAuthConfig contains Cerner OAuth2 settings
@@ -207,10 +218,11 @@ func (c *Config) validate() error {
 		"gcp":     true,
 		"epic":    true,
 		"cerner":  true,
+		"openemr": true,
 		"generic": true,
 	}
 	if !validProviders[c.FHIRServer.Provider] {
-		return fmt.Errorf("fhir_server.provider must be one of: gcp, epic, cerner, generic")
+		return fmt.Errorf("fhir_server.provider must be one of: gcp, epic, cerner, openemr, generic")
 	}
 
 	// Validate provider-specific configuration
@@ -242,6 +254,20 @@ func (c *Config) validate() error {
 		}
 		if c.FHIRServer.EPIC.TokenURL == "" {
 			return fmt.Errorf("fhir_server.epic.token_url is required for EPIC provider")
+		}
+
+	case "openemr":
+		if c.FHIRServer.BaseURL == "" {
+			return fmt.Errorf("fhir_server.base_url is required for OpenEMR provider")
+		}
+		if c.FHIRServer.OpenEMR.ClientID == "" {
+			return fmt.Errorf("fhir_server.openemr.client_id is required for OpenEMR provider")
+		}
+		if c.FHIRServer.OpenEMR.PrivateKeyPath == "" {
+			return fmt.Errorf("fhir_server.openemr.private_key_path is required for OpenEMR provider")
+		}
+		if c.FHIRServer.OpenEMR.TokenURL == "" {
+			return fmt.Errorf("fhir_server.openemr.token_url is required for OpenEMR provider")
 		}
 
 	case "cerner":
