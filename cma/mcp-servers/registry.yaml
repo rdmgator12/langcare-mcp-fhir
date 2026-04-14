@@ -1,0 +1,15 @@
+# MCP Server Registry — LangCare
+servers:
+  - name: langcare
+    environments:
+      dev:
+        url: https://langcare-mcp-dev.fly.dev/mcp
+        vault: langcare-dev-vault
+      staging:
+        url: https://langcare-mcp-staging.fly.dev/mcp
+        vault: langcare-staging-vault
+      prod:
+        url: https://langcare-mcp.fly.dev/mcp
+        vault: langcare-prod-vault
+    tools_exposed: [fhir_search, fhir_read, fhir_create, fhir_update]
+    health_check: /health

@@ -1,0 +1,16 @@
+# CMA Environment — LangCare Prod
+# API: POST /v1/environments | Beta: managed-agents-2026-04-01
+
+name: langcare-prod
+config:
+  type: cloud
+  packages:
+    pip: [requests, httpx]
+  networking:
+    type: limited
+    allowed_hosts: [langcare-mcp.fly.dev]
+    allow_mcp_servers: true
+    allow_package_managers: false
+metadata:
+  tier: production
+  owner: langcare-team

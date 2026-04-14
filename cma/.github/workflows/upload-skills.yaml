@@ -1,0 +1,23 @@
+name: Upload CMA Skills
+on:
+  push:
+    branches: [main]
+    paths: ['cma/skills/**']
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install jq
+        run: sudo apt-get install -y jq
+      - name: Upload Skills
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: ./cma/scripts/upload-skills.sh
+      - name: Commit Registry
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add cma/skills-registry.json
+          git diff --cached --quiet || git commit -m "Update skills registry"
+          git push

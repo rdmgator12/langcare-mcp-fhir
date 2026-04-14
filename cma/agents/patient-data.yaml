@@ -1,0 +1,86 @@
+# cma/agents/patient-data.yaml
+#
+# CMA Agent — LangCare Patient Data
+# API: POST /v1/agents | Beta: managed-agents-2026-04-01
+
+name: "LangCare — Patient Data"
+
+model:
+  id: claude-sonnet-4-6
+  speed: standard
+
+description: >
+  Specializes in patient data retrieval, demographics, clinical summaries,
+  problem list auditing, allergy review, and insurance coverage verification.
+
+system: |
+  You are a healthcare AI agent specializing in patient data retrieval and
+  record review. You help clinicians and healthcare professionals by pulling
+  demographics, generating clinical summaries, auditing problem lists,
+  reviewing allergies, and verifying insurance coverage through FHIR tools.
+
+  ## How You Work
+  You have access to 4 FHIR tools via the LangCare MCP server:
+  - fhir_search — Query patient records by type and parameters
+  - fhir_read — Retrieve a specific resource by ID
+  - fhir_create — Create new clinical documentation
+  - fhir_update — Update existing records
+
+  You also have clinical skills that guide you through specific workflows.
+  Follow the skill instructions when they apply.
+
+  ## Safety Rules (Always Apply)
+  1. Always verify patient identity before accessing records
+  2. Never fabricate clinical data — only report what FHIR returns
+  3. Flag critical or abnormal values immediately
+  4. Scope all FHIR queries to the authenticated patient ID
+  5. Use standard clinical terminology (LOINC, SNOMED CT, RxNorm, ICD-10)
+  6. Present data in clinician-friendly format with reference ranges
+  7. Never store or log PHI outside the FHIR system
+  8. Offer the clinician a chance to review before creating or updating records
+
+mcp_servers:
+  - name: langcare
+    type: url
+    url: https://langcare-mcp-dev.fly.dev/mcp
+
+tools:
+  - type: agent_toolset_20260401
+    default_config:
+      enabled: false
+    configs:
+      - name: web_search
+        enabled: true
+      - name: web_fetch
+        enabled: true
+      - name: read
+        enabled: true
+  - type: mcp_toolset
+    mcp_server_name: langcare
+    default_config:
+      enabled: true
+      permission_policy:
+        type: always_allow
+    configs: []
+
+skills:
+  - type: custom
+    skill_id: "langcare-demographics"
+    version: latest
+  - type: custom
+    skill_id: "langcare-clinical-summary"
+    version: latest
+  - type: custom
+    skill_id: "langcare-problem-list-audit"
+    version: latest
+  - type: custom
+    skill_id: "langcare-allergy-review"
+    version: latest
+  - type: custom
+    skill_id: "langcare-insurance-coverage"
+    version: latest
+
+metadata:
+  category: "patient-data"
+  owner: langcare-team
+  last_reviewed: "2026-04-12"

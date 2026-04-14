@@ -1,0 +1,16 @@
+# CMA Environment — LangCare Dev
+# API: POST /v1/environments | Beta: managed-agents-2026-04-01
+
+name: langcare-dev
+config:
+  type: cloud
+  packages:
+    pip: [requests, httpx]
+  networking:
+    type: limited
+    allowed_hosts: [langcare-mcp-dev.fly.dev, hapi.fhir.org]
+    allow_mcp_servers: true
+    allow_package_managers: true
+metadata:
+  tier: development
+  owner: langcare-team

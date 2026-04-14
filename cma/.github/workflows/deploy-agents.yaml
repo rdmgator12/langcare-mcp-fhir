@@ -1,0 +1,23 @@
+name: Deploy CMA Agents
+on:
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: 'Deployment tier'
+        required: true
+        default: 'dev'
+        type: choice
+        options: [dev, staging, prod]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: |
+          sudo apt-get install -y jq
+          sudo snap install yq
+      - name: Deploy Agents
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: ./cma/scripts/deploy-agents.sh ${{ github.event.inputs.tier }}

@@ -1,0 +1,16 @@
+# CMA Environment — LangCare Staging
+# API: POST /v1/environments | Beta: managed-agents-2026-04-01
+
+name: langcare-staging
+config:
+  type: cloud
+  packages:
+    pip: [requests, httpx]
+  networking:
+    type: limited
+    allowed_hosts: [langcare-mcp-staging.fly.dev]
+    allow_mcp_servers: true
+    allow_package_managers: true
+metadata:
+  tier: staging
+  owner: langcare-team

@@ -1,0 +1,12 @@
+# CMA Vault — LangCare Prod
+# API: POST /v1/vaults | Beta: managed-agents-2026-04-01
+
+display_name: LangCare Prod
+credential:
+  mcp_server_url: https://langcare-mcp.fly.dev/mcp
+  auth:
+    type: bearer
+    # Set via LANGCARE_PROD_API_KEY env var in deploy script
+metadata:
+  tier: production
+  owner: langcare-team

@@ -1,0 +1,13 @@
+name: Validate CMA Config
+on:
+  pull_request:
+    paths: ['cma/**']
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install yq
+        run: sudo snap install yq
+      - name: Validate
+        run: ./cma/scripts/validate.sh
