@@ -588,6 +588,10 @@ Default configuration uses HAPI FHIR public test server (`https://hapi.fhir.org/
 
 9 production-ready clinical AI agents built on the **[Anthropic Managed Agents API](https://docs.anthropic.com/)**. Each agent connects to a LangCare MCP FHIR Server and uses a curated set of domain-specific clinical skills drawn from the [40+ Clinical Skills Library](skills/README.md). Sessions are persistent, visible at **[platform.claude.com/workspaces/default/sessions](https://platform.claude.com/workspaces/default/sessions)**, and can be run interactively or driven by a single prompt.
 
+<p align="center">
+  <img src="docs/images/cma.png" alt="LangCare — Claude Managed Agents" width="700" />
+</p>
+
 | Agent | Domain |
 |-------|--------|
 | **Medication Management** | Reconciliation, drug interactions, Beers Criteria, opioid risk, adherence |
