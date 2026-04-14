@@ -7,7 +7,7 @@
 
 Enterprise-grade MCP Server for FHIR-based EMRs. Fully written in Go with enterprise-grade security and 4 generic FHIR operations that work with any FHIR R4 resource type. Supports **EPIC**, **Cerner**, **OpenEMR**, **GCP Healthcare API**, and any generic FHIR R4 server.
 
-Ships with a **[40+ Clinical Skills Library](skills/README.md)** — agent-agnostic workflow guides covering medication management, lab interpretation, clinical decision support, documentation, population health, and more. Extend with ✨ **New: [Claude Managed Agents](#claude-managed-agents)** (9 production-ready clinical AI agents on the Anthropic Managed Agents API), **[MCP Apps](apps/README.md)** (interactive clinical UIs inside Claude Desktop), a **[Healthcare Voice Agent](pipecat-agent/README.md)** (real-time voice AI over FHIR), and a **[LangCare CLI](cli/README.md)** for agent frameworks that don't speak MCP natively.
+Ships with a **[40+ Clinical Skills Library](skills/README.md)** — agent-agnostic workflow guides covering medication management, lab interpretation, clinical decision support, documentation, population health, and more. Extend with ✨ **New: [Claude Managed Agents](cma/README.md)** (9 production-ready clinical AI agents on the Anthropic Managed Agents API), **[MCP Apps](apps/README.md)** (interactive clinical UIs inside Claude Desktop), a **[Healthcare Voice Agent](pipecat-agent/README.md)** (real-time voice AI over FHIR), and a **[LangCare CLI](cli/README.md)** for agent frameworks that don't speak MCP natively.
 
 <p align="center">
   <a href="https://langcare.ai">
