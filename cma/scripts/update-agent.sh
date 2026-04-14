@@ -19,12 +19,16 @@ if [[ ! -f "$REGISTRY_FILE" ]]; then
   echo "Error: skills-registry.json not found — run upload-skills.sh first" >&2; exit 1
 fi
 
-case "$TIER" in
-  dev)     MCP_URL="https://langcare-mcp-dev.fly.dev/mcp" ;;
-  staging) MCP_URL="https://langcare-mcp-staging.fly.dev/mcp" ;;
-  prod)    MCP_URL="https://langcare-mcp.fly.dev/mcp" ;;
-  *)       echo "Error: Unknown tier: $TIER" >&2; exit 1 ;;
-esac
+if [[ -n "${LANGCARE_MCP_URL:-}" ]]; then
+  MCP_URL="$LANGCARE_MCP_URL"
+else
+  case "$TIER" in
+    dev)     MCP_URL="https://langcare-mcp-dev.fly.dev/mcp" ;;
+    staging) MCP_URL="https://langcare-mcp-staging.fly.dev/mcp" ;;
+    prod)    MCP_URL="https://langcare-mcp.fly.dev/mcp" ;;
+    *)       echo "Error: Unknown tier: $TIER — set LANGCARE_MCP_URL to override" >&2; exit 1 ;;
+  esac
+fi
 
 # Fetch current version for optimistic locking
 CURRENT_VERSION=$(curl -sS "https://api.anthropic.com/v1/agents/$AGENT_ID" \

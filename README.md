@@ -5,7 +5,16 @@
 [![License](https://img.shields.io/github/license/langcare/langcare-mcp-fhir)](https://github.com/langcare/langcare-mcp-fhir/blob/main/LICENSE)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/langcare/langcare-mcp-fhir)](https://github.com/langcare/langcare-mcp-fhir/blob/main/go.mod)
 
-Enterprise-grade MCP Server for FHIR-based EMRs, designed for robust deployments in agentic AI platforms. Fully written in Go with enterprise-grade security and generic FHIR operations that work with any FHIR R4 resource type. Supports **EPIC**, **Cerner**, **OpenEMR**, **GCP Healthcare API**, and any generic FHIR R4 server. Ships with a **[40+ Clinical Skills Library](skills/README.md)** — agent-agnostic workflow guides covering medication management, lab interpretation, clinical decision support, documentation, population health, and more. **&#11088; New: LangCare now supports [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview)** — interactive clinical UIs embedded directly in the server. [Learn more](apps/README.md). **&#11088; New: [Healthcare Voice Agent](pipecat-agent/README.md)** — real-time voice AI that lets patients ask about their health records and get spoken answers from their EMR, powered by PipeCat + LangCare MCP. **&#11088; New: [LangCare CLI](cli/README.md)** — a Python CLI that wraps FHIR tools (`fhir_search`, `fhir_read`, `fhir_create`, `fhir_update`) over HTTP for AI agent frameworks that don't speak MCP natively (LangChain, smolagents, CrewAI, AutoGen). Handles MCP session handshake internally, outputs clean JSON to stdout.
+Enterprise-grade MCP Server for FHIR-based EMRs. Fully written in Go with enterprise-grade security and 4 generic FHIR operations that work with any FHIR R4 resource type. Supports **EPIC**, **Cerner**, **OpenEMR**, **GCP Healthcare API**, and any generic FHIR R4 server. Ships with a **[40+ Clinical Skills Library](skills/README.md)** — agent-agnostic workflow guides covering medication management, lab interpretation, clinical decision support, documentation, population health, and more.
+
+**Featured Extensions**
+
+| | Extension | Description |
+|--|-----------|-------------|
+| &#11088; New | **[Claude Managed Agents](cma/README.md)** | 9 production-ready clinical AI agents built on the Anthropic Managed Agents API. Each agent specializes in a clinical domain — Medication Management, Lab & Diagnostics, Clinical Decision Support, Documentation, and more. Backed by 40+ clinical skills drawn from the LangCare Skills Library. Deploy in minutes with a single setup script. |
+| | **[MCP Apps](apps/README.md)** | Interactive clinical UIs (FHIR Explorer, Patient Chart Review) rendered directly inside Claude Desktop and other MCP-capable hosts. Rich charts, tables, and search — no LLM round-trips for data. |
+| | **[Healthcare Voice Agent](pipecat-agent/README.md)** | Real-time voice AI that lets patients ask about their health records and get spoken answers from their EMR. Powered by PipeCat + LangCare MCP, sub-3-second latency, three-layer HIPAA auth. |
+| | **[LangCare CLI](cli/README.md)** | Python CLI wrapping the 4 FHIR tools over HTTP for agent frameworks that don't speak MCP natively — LangChain, smolagents, CrewAI, AutoGen. Outputs clean JSON to stdout. |
 
 <p align="center">
   <a href="https://langcare.ai">
@@ -574,6 +583,44 @@ Default configuration uses HAPI FHIR public test server (`https://hapi.fhir.org/
 - **[📖 Local Development & Testing Guide](https://github.com/langcare/langcare-mcp-fhir/blob/main/docs/LOCAL-TESTING.md)** - Complete guide for setup, testing with Claude Desktop, MCP Inspector, and automation
 - **[🔐 EPIC Security Setup](https://github.com/langcare/langcare-mcp-fhir/blob/main/docs/EPIC-APP-SECURITY.md)** - Detailed EPIC authentication guide
 - **[🛡️ Security Documentation](https://github.com/langcare/langcare-mcp-fhir/blob/main/docs/SECURITY.md)** - Production deployment and security
+
+## Claude Managed Agents
+
+9 production-ready clinical AI agents built on the **[Anthropic Managed Agents API](https://docs.anthropic.com/)**. Each agent connects to a LangCare MCP FHIR Server and uses a curated set of domain-specific clinical skills drawn from the [40+ Clinical Skills Library](skills/README.md). Sessions are persistent, visible at **[platform.claude.com/workspaces/default/sessions](https://platform.claude.com/workspaces/default/sessions)**, and can be run interactively or driven by a single prompt.
+
+| Agent | Domain |
+|-------|--------|
+| **Medication Management** | Reconciliation, drug interactions, Beers Criteria, opioid risk, adherence |
+| **Care Coordination** | Discharge planning, referrals, care gaps, transitions of care, follow-up tasks |
+| **Clinical Decision Support** | Sepsis qSOFA, cardiovascular risk, VTE, fall risk, CURB-65 |
+| **Clinical Triage** | Clinical summary, acuity, vitals review, sepsis indicators |
+| **Documentation** | SOAP notes, H&P, progress notes, discharge summaries, procedure notes |
+| **Lab & Diagnostics** | Critical values, diabetes panel, lab interpretation, pre-op labs, renal function |
+| **Patient Data** | Demographics, allergy review, clinical summary, insurance coverage, problem list |
+| **Population Health** | Chronic disease registries, immunization status, preventive care, quality measures |
+| **Specialty Care** | Chronic pain, mental health, oncology, pediatric growth, prenatal |
+
+### Quickstart
+
+```bash
+# 1. Set environment variables
+export ANTHROPIC_API_KEY=sk-ant-...
+export LANGCARE_MCP_URL=https://langcare-mcp-dev.fly.dev/mcp
+export LANGCARE_MCP_TOKEN=your-bearer-token
+
+# 2. Upload skills, create environment + vault, deploy all 9 agents
+cd cma/scripts
+./setup.sh dev
+
+# 3. Run a session
+./run-session.sh <agent-id> <env-id> <vault-id> "Show active medications for patient ID d886a934-5568-42b3-9324-0f0b05fc018c"
+```
+
+`setup.sh` is idempotent — safe to re-run. At the end it prints the Environment ID and Vault ID needed for sessions.
+
+**Full guide:** [cma/README.md](cma/README.md) — env vars, all scripts reference, troubleshooting.
+
+---
 
 ## Contributing
 

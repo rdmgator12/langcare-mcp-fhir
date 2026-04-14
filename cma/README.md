@@ -1,6 +1,6 @@
 # LangCare — Claude Managed Agents (CMA)
 
-Clinical AI agents built on the Anthropic Managed Agents API. Each agent connects to a LangCare MCP FHIR server and uses domain-specific clinical skills.
+Clinical AI agents built on the Anthropic Managed Agents API. Each agent connects to a LangCare MCP FHIR server and uses domain-specific clinical skills drawn from the [40+ Clinical Skills Library](../skills/README.md) — covering medication management, lab interpretation, clinical decision support, documentation, population health, and more.
 
 ---
 
@@ -77,7 +77,7 @@ agent_011Ca2UzNpviA8k2frbTDmba   LangCare — Care Coordination        v3
 
 The REPL shows the agent's name, description, and example questions on startup. Type your message and press Enter. Use `/quit` or `Ctrl+C` to exit.
 
-Sessions are also visible with full transcripts at **claude.ai → Sessions**.
+Sessions are also visible with full transcripts at **[platform.claude.com → Sessions](https://platform.claude.com/workspaces/default/sessions)**.
 
 ---
 
@@ -131,6 +131,170 @@ Pass the tier as the first argument to `setup.sh`, `deploy-agents.sh`, and `upda
 | Patient Data | demographics, allergy review, clinical summary, insurance coverage, problem list |
 | Population Health | chronic disease registries, immunization status, preventive care, quality measures |
 | Specialty Care | chronic pain, mental health, oncology, pediatric growth, prenatal |
+
+---
+
+## Adding a New Skill and Agent
+
+### 1. Create the skill
+
+Create a directory under `cma/skills/<category>/<skill-name>/` and add a `SKILL.md` file with a YAML frontmatter header followed by the clinical workflow:
+
+```
+cma/skills/my-category/my-new-skill/
+└── SKILL.md
+```
+
+`SKILL.md` structure:
+
+```markdown
+---
+name: langcare-my-new-skill
+description: >
+  One or two sentences describing what this skill does and when the agent
+  should use it. This is what the agent reads to decide whether to invoke it.
+---
+
+# My New Skill
+
+## When to Use This Skill
+...
+
+## Clinical Workflow
+1. Use `fhir_search` to ...
+2. Use `fhir_read` to ...
+
+## FHIR Resources
+...
+
+## Safety
+...
+```
+
+The `name` field in frontmatter must be unique across all skills and is used as the skill ID placeholder in agent YAMLs. Convention: `langcare-<kebab-case-name>`.
+
+---
+
+### 2. Upload the skill
+
+```bash
+cd cma/scripts
+./upload-skills.sh
+```
+
+This uploads all skills and regenerates `skills-registry.json`, which maps skill names to their Anthropic API IDs. Already-uploaded skills are skipped.
+
+To upload a single skill only:
+
+```bash
+./upload-skill.sh ../skills/my-category/my-new-skill
+```
+
+---
+
+### 3. Create the agent YAML
+
+Create `cma/agents/my-agent.yaml`. Copy the structure from an existing agent and update the `name`, `description`, `system`, and `skills` sections:
+
+```yaml
+name: "LangCare — My New Agent"
+
+model:
+  id: claude-sonnet-4-6
+  speed: standard
+
+description: >
+  One sentence describing what this agent specializes in.
+
+system: |
+  You are a healthcare AI agent specializing in ...
+
+  ## How You Work
+  You have access to 4 FHIR tools via the LangCare MCP server:
+  - fhir_search — Query patient records by type and parameters
+  - fhir_read — Retrieve a specific resource by ID
+  - fhir_create — Create new clinical documentation
+  - fhir_update — Update existing records
+
+  You also have clinical skills that guide you through specific workflows.
+  Follow the skill instructions when they apply.
+
+  ## Safety Rules (Always Apply)
+  1. Always verify patient identity before accessing records
+  2. Never fabricate clinical data — only report what FHIR returns
+  3. Flag critical or abnormal values immediately
+  ...
+
+mcp_servers:
+  - name: langcare
+    type: url
+    url: https://langcare-mcp-dev.fly.dev/mcp   # overwritten by setup.sh
+
+tools:
+  - type: agent_toolset_20260401
+    default_config:
+      enabled: false
+    configs:
+      - name: web_search
+        enabled: true
+      - name: web_fetch
+        enabled: true
+      - name: read
+        enabled: true
+  - type: mcp_toolset
+    mcp_server_name: langcare
+    default_config:
+      enabled: true
+      permission_policy:
+        type: always_allow
+    configs: []
+
+skills:
+  - type: custom
+    skill_id: "langcare-my-new-skill"   # must match name in SKILL.md frontmatter
+    version: latest
+  - type: custom
+    skill_id: "langcare-another-skill"
+    version: latest
+
+metadata:
+  category: "my-category"
+  owner: langcare-team
+  last_reviewed: "2026-04-13"
+```
+
+The `url` under `mcp_servers` is a placeholder — `setup.sh` and `deploy-agent.sh` overwrite it with the correct tier URL at deploy time.
+
+---
+
+### 4. Deploy the agent
+
+Deploy just this one agent:
+
+```bash
+./deploy-agent.sh ../agents/my-agent.yaml dev
+```
+
+Or re-run full setup to pick up both the new skill and agent in one shot:
+
+```bash
+./setup.sh dev
+```
+
+---
+
+### 5. Verify
+
+```bash
+./list-agents.sh   # confirm the new agent appears
+./list-skills.sh   # confirm the new skill appears
+```
+
+Run a session to test:
+
+```bash
+./run-session.sh <new-agent-id> <env-id> <vault-id> "test prompt"
+```
 
 ---
 

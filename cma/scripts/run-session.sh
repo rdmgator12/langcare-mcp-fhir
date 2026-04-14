@@ -228,7 +228,7 @@ session = api("POST", "/v1/sessions", {
 })
 session_id = session["id"]
 print(c(f"  Session : {session_id}", DIM))
-print(c(f"  Portal  : claude.ai → Sessions", DIM))
+print(c(f"  Portal  : https://platform.claude.com/workspaces/default/sessions", DIM))
 print()
 
 # ── Single prompt mode ────────────────────────────────────────────────────────
