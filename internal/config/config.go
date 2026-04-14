@@ -183,7 +183,7 @@ func (c *Config) setDefaults() {
 		c.MCP.Name = "LangCare MCP FHIR Server"
 	}
 	if c.MCP.Version == "" {
-		c.MCP.Version = "2.4.3"
+		c.MCP.Version = "2.5.0"
 	}
 	if c.Logging.Level == "" {
 		c.Logging.Level = "info"

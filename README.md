@@ -5,16 +5,9 @@
 [![License](https://img.shields.io/github/license/langcare/langcare-mcp-fhir)](https://github.com/langcare/langcare-mcp-fhir/blob/main/LICENSE)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/langcare/langcare-mcp-fhir)](https://github.com/langcare/langcare-mcp-fhir/blob/main/go.mod)
 
-Enterprise-grade MCP Server for FHIR-based EMRs. Fully written in Go with enterprise-grade security and 4 generic FHIR operations that work with any FHIR R4 resource type. Supports **EPIC**, **Cerner**, **OpenEMR**, **GCP Healthcare API**, and any generic FHIR R4 server. Ships with a **[40+ Clinical Skills Library](skills/README.md)** — agent-agnostic workflow guides covering medication management, lab interpretation, clinical decision support, documentation, population health, and more.
+Enterprise-grade MCP Server for FHIR-based EMRs. Fully written in Go with enterprise-grade security and 4 generic FHIR operations that work with any FHIR R4 resource type. Supports **EPIC**, **Cerner**, **OpenEMR**, **GCP Healthcare API**, and any generic FHIR R4 server.
 
-**Featured Extensions**
-
-| | Extension | Description |
-|--|-----------|-------------|
-| &#11088; New | **[Claude Managed Agents](cma/README.md)** | 9 production-ready clinical AI agents built on the Anthropic Managed Agents API. Each agent specializes in a clinical domain — Medication Management, Lab & Diagnostics, Clinical Decision Support, Documentation, and more. Backed by 40+ clinical skills drawn from the LangCare Skills Library. Deploy in minutes with a single setup script. |
-| | **[MCP Apps](apps/README.md)** | Interactive clinical UIs (FHIR Explorer, Patient Chart Review) rendered directly inside Claude Desktop and other MCP-capable hosts. Rich charts, tables, and search — no LLM round-trips for data. |
-| | **[Healthcare Voice Agent](pipecat-agent/README.md)** | Real-time voice AI that lets patients ask about their health records and get spoken answers from their EMR. Powered by PipeCat + LangCare MCP, sub-3-second latency, three-layer HIPAA auth. |
-| | **[LangCare CLI](cli/README.md)** | Python CLI wrapping the 4 FHIR tools over HTTP for agent frameworks that don't speak MCP natively — LangChain, smolagents, CrewAI, AutoGen. Outputs clean JSON to stdout. |
+Ships with a **[40+ Clinical Skills Library](skills/README.md)** — agent-agnostic workflow guides covering medication management, lab interpretation, clinical decision support, documentation, population health, and more. Extend with **[Claude Managed Agents](cma/README.md)** (9 production-ready clinical AI agents on the Anthropic Managed Agents API), **[MCP Apps](apps/README.md)** (interactive clinical UIs inside Claude Desktop), a **[Healthcare Voice Agent](pipecat-agent/README.md)** (real-time voice AI over FHIR), and a **[LangCare CLI](cli/README.md)** for agent frameworks that don't speak MCP natively.
 
 <p align="center">
   <a href="https://langcare.ai">
