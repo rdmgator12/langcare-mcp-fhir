@@ -3,7 +3,7 @@
 Clinical AI agents built on the Anthropic Managed Agents API. Each agent connects to a LangCare MCP FHIR server and uses domain-specific clinical skills drawn from the [40+ Clinical Skills Library](../skills/README.md) — covering medication management, lab interpretation, clinical decision support, documentation, population health, and more.
 
 <p align="center">
-  <img src="../docs/images/cma-agents.png" alt="LangCare — Claude Managed Agents" width="700" />
+  <img src="../docs/images/cma-agents.png" alt="LangCare — Claude Managed Agents" width="700" height="351" />
 </p>
 
 ---

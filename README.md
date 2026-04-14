@@ -11,7 +11,7 @@ Ships with a **[40+ Clinical Skills Library](skills/README.md)** — agent-agnos
 
 <p align="center">
   <a href="https://langcare.ai">
-    <img src="docs/images/langcare-hero.png" alt="LangCare MCP FHIR — Healthcare AI Agents with FHIR MCP Server for EMRs" width="700" />
+    <img src="docs/images/langcare-hero.png" alt="LangCare MCP FHIR — Healthcare AI Agents with FHIR MCP Server for EMRs" width="700" height="524" />
   </a>
   <br />
   <a href="https://langcare.ai">langcare.ai</a>
@@ -200,7 +200,7 @@ LangCare MCP FHIR ships with built-in **MCP Apps** — interactive, rich UI view
 Both apps are reference implementations demonstrating the MCP Apps pattern. See **[apps/README.md](apps/README.md)** for architecture details and how to build new apps.
 
 <p align="center">
-  <img src="docs/images/patient-chart-review.png" alt="Patient Chart Review — clinical dashboard with vitals trends, conditions, medications, and labs" width="660" />
+  <img src="docs/images/patient-chart-review.png" alt="Patient Chart Review — clinical dashboard with vitals trends, conditions, medications, and labs" width="660" height="588" />
   <br />
   <em>Patient Chart Review running inside Claude Desktop</em>
 </p>
@@ -488,7 +488,7 @@ langcare-mcp-fhir/
 Real-time voice AI that lets patients ask about their health records and get spoken answers pulled directly from their EMR.
 
 <p align="center">
-  <img src="docs/images/healthcare-voice-agent-architecture.svg" alt="Healthcare Voice Agent Architecture — PipeCat + LangCare MCP" width="700" />
+  <img src="docs/images/healthcare-voice-agent-architecture.svg" alt="Healthcare Voice Agent Architecture — PipeCat + LangCare MCP" width="700" height="560" />
 </p>
 
 **The stack:** [PipeCat](https://docs.pipecat.ai/) (open-source, Daily.co) for the voice pipeline — STT, LLM orchestration, TTS with sub-3-second latency. Claude for clinical reasoning and tool calling. LangCare MCP FHIR Server (open-source, Go) as a stateless proxy to any FHIR R4 EMR — Epic, Cerner, GCP Healthcare API.
@@ -506,7 +506,7 @@ Real-time voice AI that lets patients ask about their health records and get spo
 Command-line interface that wraps the 4 FHIR MCP tools (`fhir_search`, `fhir_read`, `fhir_create`, `fhir_update`) as CLI subcommands over HTTP. Built for AI agent frameworks that don't speak MCP natively — LangChain, smolagents, CrewAI, AutoGen, and any framework that can call a subprocess. The CLI handles the MCP session handshake internally, so agents get clean JSON on stdout with no protocol knowledge required.
 
 <p align="center">
-  <img src="docs/images/langcare-cli.png" alt="LangCare CLI Architecture" width="700" />
+  <img src="docs/images/langcare-cli.png" alt="LangCare CLI Architecture" width="700" height="376" />
 </p>
 
 ```bash
@@ -582,7 +582,7 @@ Default configuration uses HAPI FHIR public test server (`https://hapi.fhir.org/
 9 production-ready clinical AI agents built on the **[Anthropic Managed Agents API](https://docs.anthropic.com/)**. Each agent connects to a LangCare MCP FHIR Server and uses a curated set of domain-specific clinical skills drawn from the [40+ Clinical Skills Library](skills/README.md). Sessions are persistent, visible at **[platform.claude.com/workspaces/default/sessions](https://platform.claude.com/workspaces/default/sessions)**, and can be run interactively or driven by a single prompt.
 
 <p align="center">
-  <img src="docs/images/cma.png" alt="LangCare — Claude Managed Agents" width="700" />
+  <img src="docs/images/cma.png" alt="LangCare — Claude Managed Agents" width="700" height="393" />
 </p>
 
 | Agent | Domain |
