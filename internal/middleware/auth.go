@@ -1,21 +1,25 @@
 package middleware
 
 import (
+	"crypto/subtle"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/langcare/langcare-mcp-fhir/internal/audit"
 )
+
+func constantTimeContains(tokens []string, candidate string) bool {
+	for _, t := range tokens {
+		if subtle.ConstantTimeCompare([]byte(t), []byte(candidate)) == 1 {
+			return true
+		}
+	}
+	return false
+}
 
 // AuthMiddleware validates MCP client authentication using Bearer tokens
 func AuthMiddleware(validTokens []string) func(http.Handler) http.Handler {
-	// Convert to map for O(1) lookup
-	tokenMap := make(map[string]bool)
-	for _, token := range validTokens {
-		if token != "" { // Skip empty tokens
-			tokenMap[token] = true
-		}
-	}
-
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Skip auth for health check endpoints
@@ -40,18 +44,16 @@ func AuthMiddleware(validTokens []string) func(http.Handler) http.Handler {
 			}
 
 			token := parts[1]
-			if !tokenMap[token] {
-				// Log unauthorized access attempt
+			if !constantTimeContains(validTokens, token) {
 				log.Printf("[AUTH] Unauthorized access attempt from %s to %s", r.RemoteAddr, r.URL.Path)
 				http.Error(w, "Invalid token", http.StatusUnauthorized)
 				return
 			}
 
-			// Log authorized access
 			log.Printf("[AUTH] Authorized MCP access from %s to %s", r.RemoteAddr, r.URL.Path)
 
-			// Token is valid, continue
-			next.ServeHTTP(w, r)
+			ctx := audit.WithRequestContext(r.Context(), audit.HashToken(token), r.RemoteAddr)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }

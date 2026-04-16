@@ -53,18 +53,27 @@ func (t *FHIRSearchTool) InputSchema() map[string]interface{} {
 
 // Execute executes the tool
 func (t *FHIRSearchTool) Execute(ctx context.Context, args map[string]interface{}) (interface{}, error) {
-	// Parse arguments
 	resourceType, ok := args["resourceType"].(string)
 	if !ok {
 		return nil, fmt.Errorf("resourceType is required and must be a string")
 	}
+	if err := ValidateResourceType(resourceType); err != nil {
+		return nil, err
+	}
 
 	queryParams := ""
 	if qp, ok := args["queryParams"].(string); ok {
-		queryParams = qp
+		sanitized, err := SanitizeQueryParams(qp)
+		if err != nil {
+			return nil, err
+		}
+		queryParams = sanitized
 	}
 
-	// Execute FHIR search
+	if err := EnforcePatientScope(resourceType, queryParams); err != nil {
+		return nil, err
+	}
+
 	bundle, err := t.client.Search(ctx, resourceType, queryParams)
 
 	// Log PHI access

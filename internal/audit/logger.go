@@ -2,11 +2,42 @@ package audit
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"log"
 	"time"
 )
+
+type contextKey string
+
+const (
+	ctxKeyTokenHash  contextKey = "auditTokenHash"
+	ctxKeyRemoteAddr contextKey = "auditRemoteAddr"
+	ctxKeyRequestID  contextKey = "auditRequestID"
+)
+
+func WithRequestContext(ctx context.Context, tokenHash, remoteAddr string) context.Context {
+	requestID := generateRequestID()
+	ctx = context.WithValue(ctx, ctxKeyTokenHash, tokenHash)
+	ctx = context.WithValue(ctx, ctxKeyRemoteAddr, remoteAddr)
+	ctx = context.WithValue(ctx, ctxKeyRequestID, requestID)
+	return ctx
+}
+
+func generateRequestID() string {
+	b := make([]byte, 8)
+	rand.Read(b)
+	return fmt.Sprintf("req_%s", hex.EncodeToString(b))
+}
+
+func getContextString(ctx context.Context, key contextKey) string {
+	if v, ok := ctx.Value(key).(string); ok {
+		return v
+	}
+	return ""
+}
 
 // PHIAccessEvent represents a PHI access event for audit logging
 type PHIAccessEvent struct {
@@ -35,43 +66,44 @@ func NewAuditLogger(scrubPHI bool) *AuditLogger {
 	}
 }
 
-// LogPHIAccess logs a PHI access event
+// LogPHIAccess logs a PHI access event, enriching from request context.
 func (a *AuditLogger) LogPHIAccess(ctx context.Context, event PHIAccessEvent) {
-	// Always set timestamp
 	if event.Timestamp.IsZero() {
 		event.Timestamp = time.Now().UTC()
 	}
+	if event.TokenHash == "" {
+		event.TokenHash = getContextString(ctx, ctxKeyTokenHash)
+	}
+	if event.RemoteAddr == "" {
+		event.RemoteAddr = getContextString(ctx, ctxKeyRemoteAddr)
+	}
+	if event.RequestID == "" {
+		event.RequestID = getContextString(ctx, ctxKeyRequestID)
+	}
 
-	// Scrub sensitive data if enabled
 	if a.scrubPHI {
 		event.ResourceID = a.scrubResourceID(event.ResourceID)
+		event.ErrorMessage = scrubErrorMessage(event.ErrorMessage)
 	}
 
-	// Log the event
-	if event.Status == "success" {
-		log.Printf("[AUDIT] PHI_ACCESS timestamp=%s operation=%s resource_type=%s resource_id=%s user=%s token_hash=%s remote_addr=%s status=%s",
-			event.Timestamp.Format(time.RFC3339),
-			event.Operation,
-			event.ResourceType,
-			event.ResourceID,
-			event.UserID,
-			event.TokenHash,
-			event.RemoteAddr,
-			event.Status,
-		)
-	} else {
-		log.Printf("[AUDIT] PHI_ACCESS timestamp=%s operation=%s resource_type=%s resource_id=%s user=%s token_hash=%s remote_addr=%s status=%s error=%s",
-			event.Timestamp.Format(time.RFC3339),
-			event.Operation,
-			event.ResourceType,
-			event.ResourceID,
-			event.UserID,
-			event.TokenHash,
-			event.RemoteAddr,
-			event.Status,
-			event.ErrorMessage,
-		)
+	log.Printf("[AUDIT] PHI_ACCESS timestamp=%s request_id=%s operation=%s resource_type=%s resource_id=%s token_hash=%s remote_addr=%s status=%s error=%s",
+		event.Timestamp.Format(time.RFC3339),
+		event.RequestID,
+		event.Operation,
+		event.ResourceType,
+		event.ResourceID,
+		event.TokenHash,
+		event.RemoteAddr,
+		event.Status,
+		event.ErrorMessage,
+	)
+}
+
+func scrubErrorMessage(msg string) string {
+	if len(msg) > 200 {
+		return msg[:200] + "...[truncated]"
 	}
+	return msg
 }
 
 // scrubResourceID scrubs resource IDs to prevent PHI in logs

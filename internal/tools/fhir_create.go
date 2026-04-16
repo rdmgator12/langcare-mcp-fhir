@@ -53,10 +53,12 @@ func (t *FHIRCreateTool) InputSchema() map[string]interface{} {
 
 // Execute executes the tool
 func (t *FHIRCreateTool) Execute(ctx context.Context, args map[string]interface{}) (interface{}, error) {
-	// Parse arguments
 	resourceType, ok := args["resourceType"].(string)
 	if !ok {
 		return nil, fmt.Errorf("resourceType is required and must be a string")
+	}
+	if err := ValidateResourceType(resourceType); err != nil {
+		return nil, err
 	}
 
 	resourceData, ok := args["resource"].(map[string]interface{})

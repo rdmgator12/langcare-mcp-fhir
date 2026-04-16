@@ -8,8 +8,11 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"time"
 )
+
+const maxResponseBytes = 100 * 1024 * 1024 // 100 MB
 
 // Provider defines the interface for FHIR API providers
 type Provider interface {
@@ -53,29 +56,29 @@ func NewBaseProvider(baseURL string, httpClient *http.Client, logger *slog.Logge
 
 // Read implements generic FHIR read operation
 func (b *BaseProvider) Read(ctx context.Context, resourceType, id string) (json.RawMessage, error) {
-	url := fmt.Sprintf("%s/%s/%s", b.baseURL, resourceType, id)
-	return b.doRequest(ctx, "GET", url, nil)
+	u := fmt.Sprintf("%s/%s/%s", b.baseURL, url.PathEscape(resourceType), url.PathEscape(id))
+	return b.doRequest(ctx, "GET", u, nil)
 }
 
 // Search implements generic FHIR search operation
 func (b *BaseProvider) Search(ctx context.Context, resourceType, queryParams string) (json.RawMessage, error) {
-	url := fmt.Sprintf("%s/%s", b.baseURL, resourceType)
+	u := fmt.Sprintf("%s/%s", b.baseURL, url.PathEscape(resourceType))
 	if queryParams != "" {
-		url = fmt.Sprintf("%s?%s", url, queryParams)
+		u = fmt.Sprintf("%s?%s", u, queryParams)
 	}
-	return b.doRequest(ctx, "GET", url, nil)
+	return b.doRequest(ctx, "GET", u, nil)
 }
 
 // Create implements generic FHIR create operation
 func (b *BaseProvider) Create(ctx context.Context, resourceType string, resource json.RawMessage) (json.RawMessage, error) {
-	url := fmt.Sprintf("%s/%s", b.baseURL, resourceType)
-	return b.doRequest(ctx, "POST", url, resource)
+	u := fmt.Sprintf("%s/%s", b.baseURL, url.PathEscape(resourceType))
+	return b.doRequest(ctx, "POST", u, resource)
 }
 
 // Update implements generic FHIR update operation
 func (b *BaseProvider) Update(ctx context.Context, resourceType, id string, resource json.RawMessage) (json.RawMessage, error) {
-	url := fmt.Sprintf("%s/%s/%s", b.baseURL, resourceType, id)
-	return b.doRequest(ctx, "PUT", url, resource)
+	u := fmt.Sprintf("%s/%s/%s", b.baseURL, url.PathEscape(resourceType), url.PathEscape(id))
+	return b.doRequest(ctx, "PUT", u, resource)
 }
 
 // doRequest performs an HTTP request with proper FHIR headers
@@ -107,14 +110,13 @@ func (b *BaseProvider) doRequest(ctx context.Context, method, url string, body j
 	}
 	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)
 	}
 
-	// Check for HTTP errors
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("FHIR request failed with status %d: %s", resp.StatusCode, string(respBody))
+		return nil, fmt.Errorf("FHIR request failed with status %d (body redacted for PHI safety)", resp.StatusCode)
 	}
 
 	b.logger.Debug("fhir response",
