@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/langcare/langcare-mcp-fhir/internal/config"
 	"github.com/langcare/langcare-mcp-fhir/internal/middleware"
@@ -61,10 +62,14 @@ func StartHTTP(ctx context.Context, server *mcp.Server, cfg config.HTTPConfig, o
 		w.Write([]byte("OK"))
 	})
 
-	// Create HTTP server
+	// Create HTTP server with slow-loris defenses.
+	// WriteTimeout=0 because MCP Streamable HTTP uses long-lived responses.
 	httpServer := &http.Server{
-		Addr:    addr,
-		Handler: mux,
+		Addr:              addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       60 * time.Second,
+		IdleTimeout:       120 * time.Second,
 	}
 
 	// Handle TLS if enabled

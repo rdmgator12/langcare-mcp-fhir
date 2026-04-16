@@ -1,10 +1,33 @@
 package middleware
 
 import (
+	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
+
+const maxTrackedVisitors = 100_000
+
+// clientIP extracts the real client IP from proxy headers, falling back to RemoteAddr.
+// Honors Fly-Client-IP (Fly.io) and X-Forwarded-For (standard reverse proxies).
+func clientIP(r *http.Request) string {
+	if ip := strings.TrimSpace(r.Header.Get("Fly-Client-IP")); ip != "" {
+		return ip
+	}
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		if comma := strings.Index(xff, ","); comma != -1 {
+			return strings.TrimSpace(xff[:comma])
+		}
+		return strings.TrimSpace(xff)
+	}
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return host
+}
 
 // SecurityHeadersMiddleware adds security headers to all responses
 func SecurityHeadersMiddleware(next http.Handler) http.Handler {
@@ -53,14 +76,10 @@ func NewRateLimiter(rate, burst int) *RateLimiter {
 // Middleware returns the rate limiting middleware
 func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ip := r.RemoteAddr
-
-		// Check rate limit
-		if !rl.allow(ip) {
+		if !rl.allow(clientIP(r)) {
 			http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
 			return
 		}
-
 		next.ServeHTTP(w, r)
 	})
 }
@@ -74,6 +93,17 @@ func (rl *RateLimiter) allow(ip string) bool {
 	now := time.Now()
 
 	if !exists {
+		// Bound memory: if at cap, evict any visitor idle > 1 minute.
+		if len(rl.visitors) >= maxTrackedVisitors {
+			for k, old := range rl.visitors {
+				if now.Sub(old.lastAccess) > time.Minute {
+					delete(rl.visitors, k)
+				}
+			}
+			if len(rl.visitors) >= maxTrackedVisitors {
+				return false
+			}
+		}
 		rl.visitors[ip] = &visitor{
 			tokens:     rl.burst - 1,
 			lastAccess: now,

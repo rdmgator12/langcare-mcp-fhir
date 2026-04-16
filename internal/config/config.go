@@ -2,12 +2,23 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
 )
+
+// isLocalhostURL reports whether the URL's host is localhost/loopback.
+func isLocalhostURL(raw string) bool {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return false
+	}
+	host := u.Hostname()
+	return host == "localhost" || host == "127.0.0.1" || host == "::1"
+}
 
 // GetMCPAuthTokens returns the list of valid MCP auth tokens
 func (c *Config) GetMCPAuthTokens() []string {
@@ -194,10 +205,9 @@ func (c *Config) setDefaults() {
 	if c.Transport.HTTP.Port == 0 {
 		c.Transport.HTTP.Port = 8080
 	}
-	// Default to PHI scrubbing enabled for safety
-	if !c.Logging.ScrubPHI {
-		c.Logging.ScrubPHI = true
-	}
+	// PHI scrubbing is always enabled — config field exists for future opt-in
+	// of stricter scrubbing modes, never to disable.
+	c.Logging.ScrubPHI = true
 	// Rate limiting defaults
 	if c.Security.RateLimit.Rate == 0 {
 		c.Security.RateLimit.Rate = 100
@@ -288,8 +298,11 @@ func (c *Config) validate() error {
 		if c.FHIRServer.BaseURL == "" {
 			return fmt.Errorf("fhir_server.base_url is required")
 		}
-		if !strings.HasPrefix(c.FHIRServer.BaseURL, "http://") && !strings.HasPrefix(c.FHIRServer.BaseURL, "https://") {
-			return fmt.Errorf("fhir_server.base_url must start with http:// or https://")
+		if !strings.HasPrefix(c.FHIRServer.BaseURL, "https://") {
+			// http:// only permitted for localhost (dev/sandbox).
+			if !isLocalhostURL(c.FHIRServer.BaseURL) {
+				return fmt.Errorf("fhir_server.base_url must use https:// for PHI safety (http:// only permitted for localhost)")
+			}
 		}
 
 		// Validate auth type for generic provider
@@ -335,6 +348,14 @@ func (c *Config) validate() error {
 	if c.Transport.HTTP.TLS.Enabled {
 		if c.Transport.HTTP.TLS.CertFile == "" || c.Transport.HTTP.TLS.KeyFile == "" {
 			return fmt.Errorf("transport.http.tls.cert_file and key_file are required when TLS is enabled")
+		}
+	}
+
+	// Require TLS for HTTP transport unless explicitly running behind a TLS-terminating
+	// proxy (Fly.io, nginx, ALB, etc). Set LANGCARE_BEHIND_TLS_PROXY=1 in that case.
+	if c.Transport.HTTP.Enabled && !c.Transport.HTTP.TLS.Enabled {
+		if os.Getenv("LANGCARE_BEHIND_TLS_PROXY") != "1" {
+			return fmt.Errorf("HTTP transport requires TLS (transport.http.tls.enabled=true) or LANGCARE_BEHIND_TLS_PROXY=1 env var when behind a TLS-terminating proxy")
 		}
 	}
 
