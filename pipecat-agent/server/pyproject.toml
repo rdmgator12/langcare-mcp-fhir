@@ -8,7 +8,7 @@ dependencies = [
     # Security pins (transitive via pipecat-ai). Explicit direct pins to
     # force the resolver onto patched versions. 2026-05-13.
     "python-dotenv>=1.2.2",     # CVE
-    "aiohttp>=3.13.4",          # 10 CVEs
+    "aiohttp>=3.14.0",          # 10 CVEs
     "pillow>=12.2.0",           # 5 CVEs incl. high
     "nltk>=3.9.4",              # 3 CVEs incl. high
     "cryptography>=46.0.7",     # 2 CVEs
