@@ -18,5 +18,5 @@ dependencies = [
     "loguru",
     "httpx",
     "fastapi>=0.134.0",
-    "torch>=2.10.0",
+    "torch>=2.13.0",
 ]
