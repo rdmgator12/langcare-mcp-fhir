@@ -10,7 +10,7 @@ dependencies = [
     "python-dotenv>=1.2.2",     # CVE
     "aiohttp>=3.14.1",          # 10 CVEs
     "pillow>=12.2.0",           # 5 CVEs incl. high
-    "nltk>=3.9.4",              # 3 CVEs incl. high
+    "nltk>=3.10.0",             # 3 CVEs incl. high + GHSA-p4gq-832x-fm9v path traversal (2026-07-30)
     "cryptography>=48.0.1",     # 2 CVEs
     "python-multipart>=0.0.31", # 2 CVEs incl. high
     "PyJWT>=2.13.0",            # 5 CVEs incl. high (GHSA-xgmm-8j9v-c9wx)
@@ -18,5 +18,5 @@ dependencies = [
     "loguru",
     "httpx",
     "fastapi>=0.134.0",
-    "torch>=2.10.0",
+    "torch>=2.13.0",            # GHSA-rrmf-rvhw-rf47 torch.jit.script memory corruption (2026-07-30)
 ]
