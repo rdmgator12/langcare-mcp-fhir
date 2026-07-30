@@ -9,7 +9,7 @@ dependencies = [
     # force the resolver onto patched versions. 2026-05-13.
     "python-dotenv>=1.2.2",     # CVE
     "aiohttp>=3.14.1",          # 10 CVEs
-    "pillow>=12.2.0",           # 5 CVEs incl. high
+    "pillow>=12.3.0",           # 5 CVEs incl. high
     "nltk>=3.10.0",             # 3 CVEs incl. high + GHSA-p4gq-832x-fm9v path traversal (2026-07-30)
     "cryptography>=48.0.1",     # 2 CVEs
     "python-multipart>=0.0.31", # 2 CVEs incl. high
